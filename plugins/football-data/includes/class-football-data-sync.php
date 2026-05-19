@@ -35,6 +35,7 @@ final class Football_Data_Sync
         $task = sanitize_key($_POST['football_data_sync_task'] ?? '');
         $result = match ($task) {
             'leagues' => $this->sync_leagues(),
+            'standings' => $this->sync_standings(),
             'teams' => $this->sync_teams(),
             'fixtures' => $this->sync_fixtures(),
             default => new WP_Error('football_data_unknown_sync_task', 'Неизвестная задача синхронизации.'),
@@ -99,6 +100,7 @@ final class Football_Data_Sync
 
             <div style="display: flex; gap: 12px; flex-wrap: wrap; margin: 18px 0;">
                 <?php $this->render_button('leagues', 'Загрузить турниры'); ?>
+                <?php $this->render_button('standings', 'Загрузить таблицы'); ?>
                 <?php $this->render_button('teams', 'Загрузить команды'); ?>
                 <?php $this->render_button('fixtures', 'Загрузить матчи сезона'); ?>
             </div>
@@ -138,11 +140,59 @@ final class Football_Data_Sync
             $post_id = $this->upsert_post('football_league', $api_id, $name, '', [
                 'football_logo' => esc_url_raw($league['logo'] ?? ''),
                 'football_country' => sanitize_text_field($country['name'] ?? ''),
+                'football_country_code' => sanitize_text_field($country['code'] ?? ''),
+                'football_country_flag' => esc_url_raw($country['flag'] ?? ''),
                 'football_season' => $season,
                 'football_league_type' => sanitize_key($league['type'] ?? 'league'),
+                'football_season_start' => sanitize_text_field($this->season_value($item, 'start')),
+                'football_season_end' => sanitize_text_field($this->season_value($item, 'end')),
+                'football_season_current' => $this->season_value($item, 'current') ? '1' : '0',
+                'football_coverage' => wp_json_encode($this->season_value($item, 'coverage') ?: [], JSON_UNESCAPED_UNICODE),
+                'football_api_payload' => wp_json_encode($item, JSON_UNESCAPED_UNICODE),
             ], $stats);
 
             $this->assign_terms($post_id, 'football_country', $country['name'] ?? '');
+            $this->assign_terms($post_id, 'football_season', $season);
+        }
+
+        return $stats;
+    }
+
+    public function sync_standings(): array|WP_Error
+    {
+        $season = $this->default_season();
+        $league_ids = $this->settings->selected_league_ids();
+        if (!$league_ids) {
+            return new WP_Error('football_data_no_selected_leagues', 'В настройках не выбраны лиги для загрузки.');
+        }
+
+        $stats = $this->empty_stats(count($league_ids));
+        foreach ($league_ids as $league_id) {
+            $response = $this->api->request_for_league('standings', $league_id, ['season' => $season]);
+            if (is_wp_error($response)) {
+                return $response;
+            }
+
+            $league = $response['response'][0]['league'] ?? [];
+            if (!$league) {
+                $stats['skipped']++;
+                continue;
+            }
+
+            $post_id = $this->find_post_by_api_id('football_league', $league_id);
+            if (!$post_id) {
+                $post_id = $this->upsert_post('football_league', $league_id, sanitize_text_field($league['name'] ?? 'League ' . $league_id), '', [
+                    'football_logo' => esc_url_raw($league['logo'] ?? ''),
+                    'football_country' => sanitize_text_field($league['country'] ?? ''),
+                    'football_country_flag' => esc_url_raw($league['flag'] ?? ''),
+                    'football_season' => $season,
+                ], $stats);
+            } else {
+                $stats['updated']++;
+            }
+
+            update_post_meta($post_id, 'football_standings', $league['standings'] ?? []);
+            update_post_meta($post_id, 'football_standings_payload', wp_json_encode($league, JSON_UNESCAPED_UNICODE));
             $this->assign_terms($post_id, 'football_season', $season);
         }
 
@@ -258,14 +308,7 @@ final class Football_Data_Sync
 
     private function upsert_post(string $post_type, int $api_id, string $title, string $content, array $meta, array &$stats): int
     {
-        $existing = get_posts([
-            'post_type' => $post_type,
-            'post_status' => 'any',
-            'fields' => 'ids',
-            'posts_per_page' => 1,
-            'meta_key' => 'football_api_id',
-            'meta_value' => (string) $api_id,
-        ]);
+        $post_id = $this->find_post_by_api_id($post_type, $api_id);
 
         $post_data = [
             'post_type' => $post_type,
@@ -274,8 +317,8 @@ final class Football_Data_Sync
             'post_content' => $content,
         ];
 
-        if ($existing) {
-            $post_data['ID'] = (int) $existing[0];
+        if ($post_id) {
+            $post_data['ID'] = $post_id;
             $post_id = wp_update_post($post_data, true);
             $stats['updated']++;
         } else {
@@ -294,6 +337,20 @@ final class Football_Data_Sync
         }
 
         return (int) $post_id;
+    }
+
+    private function find_post_by_api_id(string $post_type, int $api_id): int
+    {
+        $existing = get_posts([
+            'post_type' => $post_type,
+            'post_status' => 'any',
+            'fields' => 'ids',
+            'posts_per_page' => 1,
+            'meta_key' => 'football_api_id',
+            'meta_value' => (string) $api_id,
+        ]);
+
+        return $existing ? (int) $existing[0] : 0;
     }
 
     private function assign_terms(int $post_id, string $taxonomy, string $term_name): void
@@ -327,6 +384,7 @@ final class Football_Data_Sync
     {
         $labels = [
             'leagues' => 'Турниры',
+            'standings' => 'Таблицы',
             'teams' => 'Команды',
             'fixtures' => 'Матчи',
         ];
@@ -344,5 +402,16 @@ final class Football_Data_Sync
     private function notice_key(): string
     {
         return 'football_data_sync_notice_' . get_current_user_id();
+    }
+
+    private function season_value(array $item, string $key): mixed
+    {
+        foreach (($item['seasons'] ?? []) as $season) {
+            if ((string) ($season['year'] ?? '') === $this->default_season()) {
+                return $season[$key] ?? null;
+            }
+        }
+
+        return $item['seasons'][0][$key] ?? null;
     }
 }

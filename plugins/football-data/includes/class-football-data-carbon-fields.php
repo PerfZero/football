@@ -56,12 +56,20 @@ final class Football_Data_Carbon_Fields
                 Field::make('text', 'football_api_id', 'API ID'),
                 Field::make('image', 'football_logo', 'Логотип')->set_value_type('url'),
                 Field::make('text', 'football_country', 'Страна'),
+                Field::make('text', 'football_country_code', 'Код страны'),
+                Field::make('image', 'football_country_flag', 'Флаг страны')->set_value_type('url'),
                 Field::make('text', 'football_season', 'Сезон'),
+                Field::make('text', 'football_season_start', 'Дата начала сезона'),
+                Field::make('text', 'football_season_end', 'Дата окончания сезона'),
+                Field::make('checkbox', 'football_season_current', 'Текущий сезон'),
                 Field::make('select', 'football_league_type', 'Тип турнира')
                     ->set_options([
                         'league' => 'Лига',
                         'cup' => 'Кубок',
                     ]),
+                Field::make('textarea', 'football_coverage', 'Доступные данные API'),
+                Field::make('textarea', 'football_api_payload', 'Полный ответ API по турниру'),
+                Field::make('textarea', 'football_standings_payload', 'Полный ответ API по таблице'),
                 Field::make('textarea', 'football_short_description', 'Короткое описание'),
             ]);
     }
