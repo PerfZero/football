@@ -42,17 +42,7 @@ final class Football_Data_CPT
 
     public function venue_columns(array $columns): array
     {
-        $new_columns = [];
-
-        foreach ($columns as $key => $label) {
-            if ($key === 'title') {
-                $new_columns['football_venue_image'] = 'Фото';
-            }
-
-            $new_columns[$key] = $label;
-        }
-
-        return $new_columns;
+        return $this->add_image_column($columns, 'football_venue_image', 'Фото');
     }
 
     public function render_venue_column(string $column, int $post_id): void
@@ -70,15 +60,57 @@ final class Football_Data_CPT
         echo '<img class="football-data-admin-thumb" src="' . esc_url($image) . '" alt="">';
     }
 
+    public function team_columns(array $columns): array
+    {
+        return $this->add_image_column($columns, 'football_team_image', 'Фото');
+    }
+
+    public function render_team_column(string $column, int $post_id): void
+    {
+        if ($column !== 'football_team_image') {
+            return;
+        }
+
+        $image = $this->image_url(get_post_meta($post_id, 'football_logo', true));
+        if ($image === '') {
+            echo '<span class="football-data-admin-thumb football-data-admin-thumb--empty">-</span>';
+            return;
+        }
+
+        echo '<img class="football-data-admin-thumb football-data-admin-thumb--contain" src="' . esc_url($image) . '" alt="">';
+    }
+
+    public function player_columns(array $columns): array
+    {
+        return $this->add_image_column($columns, 'football_player_image', 'Фото');
+    }
+
+    public function render_player_column(string $column, int $post_id): void
+    {
+        if ($column !== 'football_player_image') {
+            return;
+        }
+
+        $image = $this->image_url(get_post_meta($post_id, 'football_photo', true));
+        if ($image === '') {
+            echo '<span class="football-data-admin-thumb football-data-admin-thumb--empty">-</span>';
+            return;
+        }
+
+        echo '<img class="football-data-admin-thumb football-data-admin-thumb--cover" src="' . esc_url($image) . '" alt="">';
+    }
+
     public function admin_list_styles(): void
     {
         $screen = get_current_screen();
-        if (!$screen || $screen->post_type !== 'football_venue') {
+        if (!$screen || !in_array($screen->post_type, ['football_venue', 'football_team', 'football_player'], true)) {
             return;
         }
 
         echo '<style>
-            .column-football_venue_image { width: 92px; }
+            .column-football_venue_image,
+            .column-football_team_image,
+            .column-football_player_image { width: 92px; }
             .football-data-admin-thumb {
                 width: 72px;
                 height: 48px;
@@ -86,10 +118,11 @@ final class Football_Data_CPT
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
-                object-fit: cover;
                 background: #f0f0f1;
                 color: #646970;
             }
+            .football-data-admin-thumb--cover { object-fit: cover; }
+            .football-data-admin-thumb--contain { object-fit: contain; padding: 6px; }
         </style>';
     }
 
@@ -136,6 +169,26 @@ final class Football_Data_CPT
             $image = $this->venue_fallback_team_image($post_id);
         }
 
+        return $this->image_url($image);
+    }
+
+    private function add_image_column(array $columns, string $column_key, string $label): array
+    {
+        $new_columns = [];
+
+        foreach ($columns as $key => $column_label) {
+            if ($key === 'title') {
+                $new_columns[$column_key] = $label;
+            }
+
+            $new_columns[$key] = $column_label;
+        }
+
+        return $new_columns;
+    }
+
+    private function image_url(mixed $image): string
+    {
         if (is_numeric($image)) {
             return wp_get_attachment_image_url((int) $image, 'thumbnail') ?: '';
         }

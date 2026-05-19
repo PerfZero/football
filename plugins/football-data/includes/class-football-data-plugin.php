@@ -53,6 +53,10 @@ final class Football_Data_Plugin
         add_action('admin_head-edit.php', [$this->cpt, 'admin_list_styles']);
         add_filter('manage_football_venue_posts_columns', [$this->cpt, 'venue_columns']);
         add_action('manage_football_venue_posts_custom_column', [$this->cpt, 'render_venue_column'], 10, 2);
+        add_filter('manage_football_team_posts_columns', [$this->cpt, 'team_columns']);
+        add_action('manage_football_team_posts_custom_column', [$this->cpt, 'render_team_column'], 10, 2);
+        add_filter('manage_football_player_posts_columns', [$this->cpt, 'player_columns']);
+        add_action('manage_football_player_posts_custom_column', [$this->cpt, 'render_player_column'], 10, 2);
         add_filter('pll_get_post_types', [$this->cpt, 'polylang_post_types'], 10, 2);
         add_filter('pll_get_taxonomies', [$this->cpt, 'polylang_taxonomies'], 10, 2);
     }
