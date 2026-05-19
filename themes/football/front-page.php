@@ -14,13 +14,6 @@ function football_home_archive_url(string $post_type): string
     return $url ? (string) $url : '';
 }
 
-function football_home_count(string $post_type): int
-{
-    $count = wp_count_posts($post_type);
-
-    return (int) ($count->publish ?? 0);
-}
-
 function football_home_image_url(mixed $value): string
 {
     if (is_numeric($value)) {
@@ -161,24 +154,6 @@ $compact_sections = [
                 <?php football_esc_html_t('site.home.subtitle'); ?>
             </p>
         </div>
-        <dl class="home-page__stats" aria-label="<?php echo esc_attr(football_t('home.summary')); ?>">
-            <div>
-                <dt><?php football_esc_html_t('home.leagues_count'); ?></dt>
-                <dd><?php echo esc_html((string) football_home_count('football_league')); ?></dd>
-            </div>
-            <div>
-                <dt><?php football_esc_html_t('home.teams_count'); ?></dt>
-                <dd><?php echo esc_html((string) football_home_count('football_team')); ?></dd>
-            </div>
-            <div>
-                <dt><?php football_esc_html_t('home.matches_count'); ?></dt>
-                <dd><?php echo esc_html((string) football_home_count('football_fixture')); ?></dd>
-            </div>
-            <div>
-                <dt><?php football_esc_html_t('home.venues_count'); ?></dt>
-                <dd><?php echo esc_html((string) football_home_count('football_venue')); ?></dd>
-            </div>
-        </dl>
     </section>
 
     <section class="container home-page__quick">

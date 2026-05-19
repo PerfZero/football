@@ -294,10 +294,6 @@ img {
 }
 
 .home-page__intro {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 420px;
-    gap: 24px;
-    align-items: end;
     padding: 32px 0;
 }
 
@@ -325,7 +321,6 @@ img {
     text-transform: uppercase;
 }
 
-.home-page__stats,
 .home-page__links {
     display: flex;
     flex-wrap: wrap;
@@ -333,33 +328,11 @@ img {
     margin-top: 18px;
 }
 
-.home-page__stats {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    margin: 0;
-}
-
-.home-page__stats div {
-    border: 1px solid var(--color-line);
-    border-radius: 8px;
-    padding: 14px;
-    background: #ffffff;
-}
-
-.home-page__stats dt,
 .home-data-list dt {
     color: var(--color-muted);
     font-size: 0.76rem;
     font-weight: 800;
     text-transform: uppercase;
-}
-
-.home-page__stats dd {
-    margin: 4px 0 0;
-    color: var(--color-field-dark);
-    font-size: 1.65rem;
-    font-weight: 900;
-    line-height: 1;
 }
 
 .home-page__links a {
@@ -1221,7 +1194,6 @@ a.league-team-cell:focus {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .home-page__intro,
     .home-league-grid,
     .home-team-grid {
         grid-template-columns: 1fr;
@@ -1255,7 +1227,6 @@ a.league-team-cell:focus {
         grid-template-columns: 1fr;
     }
 
-    .home-page__stats,
     .home-data-list {
         grid-template-columns: 1fr;
     }
