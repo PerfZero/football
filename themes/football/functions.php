@@ -58,6 +58,7 @@ function football_string_translations(): array
         'site.no_posts' => 'Пока нет записей.',
         'home.featured_leagues' => 'Турниры в базе',
         'home.featured_teams' => 'Команды',
+        'home.featured_players' => 'Игроки',
         'home.featured_matches' => 'Матчи',
         'home.more_sections' => 'Ещё на сайте',
         'home.season' => 'Сезон',

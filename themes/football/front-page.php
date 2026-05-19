@@ -80,6 +80,22 @@ function football_home_match_score(string $home_score, string $away_score): stri
     return 'vs';
 }
 
+function football_home_player_primary_stats(int $post_id): array
+{
+    $stats = football_home_meta($post_id, 'football_season_stats');
+
+    return is_array($stats) && is_array($stats[0] ?? null) ? $stats[0] : [];
+}
+
+function football_home_rating(mixed $value): string
+{
+    if ($value === '' || $value === null) {
+        return '-';
+    }
+
+    return is_numeric($value) ? number_format((float) $value, 1, '.', '') : (string) $value;
+}
+
 $leagues = get_posts([
     'post_type' => 'football_league',
     'post_status' => 'publish',
@@ -96,6 +112,14 @@ $teams = get_posts([
     'order' => 'DESC',
 ]);
 
+$players = get_posts([
+    'post_type' => 'football_player',
+    'post_status' => 'publish',
+    'posts_per_page' => 6,
+    'orderby' => 'date',
+    'order' => 'DESC',
+]);
+
 $fixtures = get_posts([
     'post_type' => 'football_fixture',
     'post_status' => 'publish',
@@ -106,11 +130,6 @@ $fixtures = get_posts([
 ]);
 
 $compact_sections = [
-    [
-        'title' => football_t('section.players'),
-        'post_type' => 'football_player',
-        'archive_label' => football_t('archive.players'),
-    ],
     [
         'title' => football_t('section.bookmakers'),
         'post_type' => 'football_bookmaker',
@@ -251,6 +270,74 @@ $compact_sections = [
                                 <dt><?php football_esc_html_t('home.founded'); ?></dt>
                                 <dd><?php echo esc_html($founded ?: football_t('home.not_set')); ?></dd>
                             </div>
+                        </dl>
+                    </article>
+                <?php endforeach; ?>
+            </div>
+        <?php else : ?>
+            <p class="home-empty"><?php football_esc_html_t('site.no_posts'); ?></p>
+        <?php endif; ?>
+    </section>
+
+    <section class="container home-featured">
+        <header class="home-section-heading">
+            <h2><?php football_esc_html_t('home.featured_players'); ?></h2>
+        </header>
+
+        <?php if ($players) : ?>
+            <div class="home-player-grid">
+                <?php foreach ($players as $player) : ?>
+                    <?php
+                    $player_id = $player->ID;
+                    $photo = football_home_image_url(football_home_meta($player_id, 'football_photo'));
+                    $team = football_home_linked_post(football_home_meta($player_id, 'football_team_post_id'));
+                    $league = football_home_linked_post(football_home_meta($player_id, 'football_league_post_id'));
+                    $position = football_home_meta($player_id, 'football_position');
+                    $nationality = football_home_meta($player_id, 'football_nationality');
+                    $rating = football_home_meta($player_id, 'football_average_rating');
+                    $stats = football_home_player_primary_stats($player_id);
+                    ?>
+                    <article class="home-player-card">
+                        <a class="home-player-card__top" href="<?php echo esc_url(get_permalink($player)); ?>">
+                            <span class="home-player-card__photo">
+                                <?php if ($photo) : ?>
+                                    <img src="<?php echo esc_url($photo); ?>" alt="">
+                                <?php endif; ?>
+                            </span>
+                            <span>
+                                <strong><?php echo esc_html(get_the_title($player)); ?></strong>
+                                <small><?php echo esc_html(implode(' · ', array_filter([$position, $nationality])) ?: football_t('home.not_set')); ?></small>
+                            </span>
+                        </a>
+
+                        <dl class="home-data-list home-data-list--compact">
+                            <div>
+                                <dt><?php football_esc_html_t('player.team'); ?></dt>
+                                <dd>
+                                    <?php if ($team) : ?>
+                                        <a href="<?php echo esc_url(get_permalink($team)); ?>"><?php echo esc_html(get_the_title($team)); ?></a>
+                                    <?php else : ?>
+                                        <?php echo esc_html(football_home_meta($player_id, 'football_current_team') ?: football_t('home.not_set')); ?>
+                                    <?php endif; ?>
+                                </dd>
+                            </div>
+                            <div>
+                                <dt><?php football_esc_html_t('home.league'); ?></dt>
+                                <dd>
+                                    <?php if ($league) : ?>
+                                        <a href="<?php echo esc_url(get_permalink($league)); ?>"><?php echo esc_html(get_the_title($league)); ?></a>
+                                    <?php else : ?>
+                                        <?php echo esc_html($stats['league'] ?? football_t('home.not_set')); ?>
+                                    <?php endif; ?>
+                                </dd>
+                            </div>
+                        </dl>
+
+                        <dl class="home-player-card__stats">
+                            <div><dt><?php football_esc_html_t('player.matches'); ?></dt><dd><?php echo esc_html((string) ($stats['matches'] ?? '-')); ?></dd></div>
+                            <div><dt><?php football_esc_html_t('player.goals'); ?></dt><dd><?php echo esc_html((string) ($stats['goals'] ?? '-')); ?></dd></div>
+                            <div><dt><?php football_esc_html_t('player.assists_short'); ?></dt><dd><?php echo esc_html((string) ($stats['assists'] ?? '-')); ?></dd></div>
+                            <div><dt><?php football_esc_html_t('player.average_rating'); ?></dt><dd><?php echo esc_html(football_home_rating($rating)); ?></dd></div>
                         </dl>
                     </article>
                 <?php endforeach; ?>
