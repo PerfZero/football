@@ -81,6 +81,30 @@ function football_league_season_post(mixed $league_api_id, mixed $season): ?WP_P
 
     return $seasons[0] ?? null;
 }
+
+function football_league_group_name(array $group, int $index): string
+{
+    $name = sanitize_text_field((string) ($group[0]['group'] ?? ''));
+    if ($name !== '') {
+        return $name;
+    }
+
+    return sprintf(__('Группа %d', 'football'), $index + 1);
+}
+
+function football_league_format_match_date(string $value): string
+{
+    if ($value === '') {
+        return '';
+    }
+
+    $timestamp = strtotime($value);
+    if (!$timestamp) {
+        return $value;
+    }
+
+    return wp_date('d.m.Y H:i', $timestamp);
+}
 ?>
 
 <main id="main" class="league-page">
@@ -177,8 +201,9 @@ function football_league_season_post(mixed $league_api_id, mixed $season): ?WP_P
                 <article class="league-panel">
                     <h2><?php echo esc_html__('Турнирная таблица', 'football'); ?></h2>
                     <?php if ($standings) : ?>
-                        <?php foreach ($standings as $group) : ?>
+                        <?php foreach ($standings as $group_index => $group) : ?>
                             <div class="league-table-wrap">
+                                <h3 class="league-table-group"><?php echo esc_html(football_league_group_name($group, (int) $group_index)); ?></h3>
                                 <table class="league-table">
                                     <thead>
                                     <tr>
@@ -250,7 +275,7 @@ function football_league_season_post(mixed $league_api_id, mixed $season): ?WP_P
                             <?php foreach ($fixtures as $fixture) : ?>
                                 <li>
                                     <a href="<?php echo esc_url(get_permalink($fixture)); ?>"><?php echo esc_html(get_the_title($fixture)); ?></a>
-                                    <small><?php echo esc_html(get_post_meta($fixture->ID, 'football_match_datetime', true)); ?></small>
+                                    <small><?php echo esc_html(football_league_format_match_date(get_post_meta($fixture->ID, 'football_match_datetime', true))); ?></small>
                                 </li>
                             <?php endforeach; ?>
                         </ul>

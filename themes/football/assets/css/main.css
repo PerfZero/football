@@ -728,6 +728,17 @@ img {
     overflow-x: auto;
 }
 
+.league-table-wrap + .league-table-wrap {
+    margin-top: 18px;
+}
+
+.league-table-group {
+    margin: 0 0 8px;
+    color: var(--color-muted);
+    font-size: 0.82rem;
+    text-transform: uppercase;
+}
+
 .league-table {
     width: 100%;
     border-collapse: collapse;
