@@ -38,6 +38,7 @@ final class Football_Data_Sync
             'standings' => $this->sync_standings(),
             'teams' => $this->sync_teams(),
             'fixtures' => $this->sync_fixtures(),
+            'players' => $this->sync_players(absint($_POST['football_data_team_api_id'] ?? 0)),
             default => new WP_Error('football_data_unknown_sync_task', 'Неизвестная задача синхронизации.'),
         };
 
@@ -95,7 +96,7 @@ final class Football_Data_Sync
             </table>
 
             <h2>Загрузить данные</h2>
-            <p>Рекомендуемый порядок: сначала турниры, потом команды, потом матчи. Игроков добавим отдельным порционным синком, потому что этот endpoint самый тяжёлый по лимитам.</p>
+            <p>Рекомендуемый порядок: сначала турниры, потом команды, потом матчи. Игроки грузятся отдельно по командам, потому что этот endpoint тяжелее по лимитам.</p>
             <p>Если синхронизация возвращает 0 созданных и 0 обновлённых записей, сначала проверьте сезон: для сезона 2024/25 в API нужно указывать <code>2024</code>, для 2025/26 — <code>2025</code>.</p>
 
             <div style="display: flex; gap: 12px; flex-wrap: wrap; margin: 18px 0;">
@@ -105,12 +106,17 @@ final class Football_Data_Sync
                 <?php $this->render_button('fixtures', 'Загрузить матчи сезона'); ?>
             </div>
 
+            <h2>Загрузить игроков</h2>
+            <p>Безопаснее выбрать одну команду. Вариант “все команды выбранных лиг” может сделать много запросов к API.</p>
+            <?php $this->render_players_form(); ?>
+
             <h2>Что уже есть в WordPress</h2>
             <table class="widefat striped" style="max-width: 900px;">
                 <tbody>
                 <tr><th>Турниры</th><td><?php echo esc_html(wp_count_posts('football_league')->publish ?? 0); ?></td></tr>
                 <tr><th>Сезоны турниров</th><td><?php echo esc_html(wp_count_posts('football_lg_season')->publish ?? 0); ?></td></tr>
                 <tr><th>Команды</th><td><?php echo esc_html(wp_count_posts('football_team')->publish ?? 0); ?></td></tr>
+                <tr><th>Игроки</th><td><?php echo esc_html(wp_count_posts('football_player')->publish ?? 0); ?></td></tr>
                 <tr><th>Стадионы</th><td><?php echo esc_html(wp_count_posts('football_venue')->publish ?? 0); ?></td></tr>
                 <tr><th>Матчи</th><td><?php echo esc_html(wp_count_posts('football_fixture')->publish ?? 0); ?></td></tr>
                 </tbody>
@@ -352,6 +358,188 @@ final class Football_Data_Sync
         return $stats;
     }
 
+    public function sync_players(int $team_api_id = 0): array|WP_Error
+    {
+        $season = $this->default_season();
+        $teams = $this->player_sync_teams($team_api_id);
+        if (!$teams) {
+            return new WP_Error('football_data_no_teams_for_players', 'Команды для загрузки игроков не найдены. Сначала загрузите команды.');
+        }
+
+        $stats = $this->empty_stats(0);
+        foreach ($teams as $team_post) {
+            $team_id = absint(get_post_meta($team_post->ID, 'football_api_id', true));
+            $league_id = absint(get_post_meta($team_post->ID, 'football_league_api_id', true));
+            if (!$team_id || !$league_id) {
+                $stats['skipped']++;
+                continue;
+            }
+
+            $page = 1;
+            $total_pages = 1;
+            do {
+                $response = $this->api->request_for_league('players', $league_id, [
+                    'season' => $season,
+                    'team' => $team_id,
+                    'page' => $page,
+                ]);
+                $stats['requests']++;
+
+                if (is_wp_error($response)) {
+                    return $response;
+                }
+
+                foreach ($response['response'] ?? [] as $item) {
+                    $this->upsert_player($item, $team_post, $league_id, $season, $stats);
+                }
+
+                $total_pages = max(1, absint($response['paging']['total'] ?? 1));
+                $page++;
+            } while ($page <= $total_pages && $page <= 20);
+        }
+
+        return $stats;
+    }
+
+    private function upsert_player(array $item, WP_Post $team_post, int $league_id, string $season, array &$stats): int
+    {
+        $player = $item['player'] ?? [];
+        $player_id = absint($player['id'] ?? 0);
+        $name = sanitize_text_field($player['name'] ?? '');
+        if (!$player_id || $name === '') {
+            $stats['skipped']++;
+            return 0;
+        }
+
+        $primary_stat = $this->primary_player_stat($item['statistics'] ?? [], $league_id, absint(get_post_meta($team_post->ID, 'football_api_id', true)));
+        $team = $primary_stat['team'] ?? [];
+        $league = $primary_stat['league'] ?? [];
+        $games = $primary_stat['games'] ?? [];
+        $goals = $primary_stat['goals'] ?? [];
+        $birth = $player['birth'] ?? [];
+        $team_api_id = absint($team['id'] ?? get_post_meta($team_post->ID, 'football_api_id', true));
+        $team_post_id = $this->find_post_by_api_id('football_team', $team_api_id) ?: (int) $team_post->ID;
+        $league_post_id = $this->find_post_by_api_id('football_league', $league_id);
+        $league_season_id = $this->find_league_season($league_id, $season);
+
+        $post_id = $this->upsert_post('football_player', $player_id, $name, '', [
+            'football_photo' => $this->sideload_image($player['photo'] ?? '', $name . ' photo'),
+            'football_first_name' => sanitize_text_field($player['firstname'] ?? ''),
+            'football_last_name' => sanitize_text_field($player['lastname'] ?? ''),
+            'football_birth_date' => sanitize_text_field($birth['date'] ?? ''),
+            'football_birth_place' => sanitize_text_field($birth['place'] ?? ''),
+            'football_birth_country' => sanitize_text_field($birth['country'] ?? ''),
+            'football_nationality' => sanitize_text_field($player['nationality'] ?? ''),
+            'football_height' => sanitize_text_field($player['height'] ?? ''),
+            'football_weight' => sanitize_text_field($player['weight'] ?? ''),
+            'football_number' => sanitize_text_field((string) ($games['number'] ?? '')),
+            'football_position' => sanitize_text_field($games['position'] ?? ''),
+            'football_current_team' => sanitize_text_field($team['name'] ?? get_the_title($team_post)),
+            'football_team_api_id' => (string) $team_api_id,
+            'football_team_post_id' => (string) $team_post_id,
+            'football_player_team' => $this->association_value('football_team', $team_post_id),
+            'football_league_api_id' => (string) $league_id,
+            'football_league_post_id' => (string) $league_post_id,
+            'football_lg_season_post_id' => (string) $league_season_id,
+            'football_player_league' => $this->association_value('football_league', $league_post_id),
+            'football_player_league_season' => $this->association_value('football_lg_season', $league_season_id),
+            'football_age' => sanitize_text_field((string) ($player['age'] ?? '')),
+            'football_injured' => !empty($player['injured']) ? '1' : '0',
+            'football_average_rating' => sanitize_text_field((string) ($games['rating'] ?? '')),
+            'football_about' => $this->player_about($player, $team['name'] ?? get_the_title($team_post), $league['name'] ?? ''),
+            'football_season_stats' => $this->map_player_season_stats($item['statistics'] ?? [], $season),
+            'football_career' => $this->map_player_career($item['statistics'] ?? [], $season),
+            'football_api_payload' => wp_json_encode($item, JSON_UNESCAPED_UNICODE),
+        ], $stats);
+
+        $this->assign_terms($post_id, 'football_country', $player['nationality'] ?? '');
+        $this->assign_terms($post_id, 'football_position', $games['position'] ?? '');
+        $this->assign_terms($post_id, 'football_season', $season);
+
+        return $post_id;
+    }
+
+    private function primary_player_stat(array $statistics, int $league_id, int $team_id): array
+    {
+        foreach ($statistics as $stat) {
+            if (!is_array($stat)) {
+                continue;
+            }
+
+            if (
+                absint($stat['league']['id'] ?? 0) === $league_id
+                && (!$team_id || absint($stat['team']['id'] ?? 0) === $team_id)
+            ) {
+                return $stat;
+            }
+        }
+
+        return is_array($statistics[0] ?? null) ? $statistics[0] : [];
+    }
+
+    private function map_player_season_stats(array $statistics, string $season): array
+    {
+        $mapped = [];
+
+        foreach ($statistics as $stat) {
+            if (!is_array($stat)) {
+                continue;
+            }
+
+            $games = $stat['games'] ?? [];
+            $goals = $stat['goals'] ?? [];
+            $cards = $stat['cards'] ?? [];
+
+            $mapped[] = [
+                'season' => sanitize_text_field((string) ($stat['league']['season'] ?? $season)),
+                'league' => sanitize_text_field($stat['league']['name'] ?? ''),
+                'team' => sanitize_text_field($stat['team']['name'] ?? ''),
+                'matches' => sanitize_text_field((string) ($games['appearences'] ?? '')),
+                'goals' => sanitize_text_field((string) ($goals['total'] ?? '')),
+                'assists' => sanitize_text_field((string) ($goals['assists'] ?? '')),
+                'yellow_cards' => sanitize_text_field((string) ($cards['yellow'] ?? '')),
+                'red_cards' => sanitize_text_field((string) ($cards['red'] ?? '')),
+                'minutes' => sanitize_text_field((string) ($games['minutes'] ?? '')),
+            ];
+        }
+
+        return $mapped;
+    }
+
+    private function map_player_career(array $statistics, string $season): array
+    {
+        $mapped = [];
+
+        foreach ($statistics as $stat) {
+            if (!is_array($stat)) {
+                continue;
+            }
+
+            $games = $stat['games'] ?? [];
+            $goals = $stat['goals'] ?? [];
+            $mapped[] = [
+                'period' => sanitize_text_field((string) ($stat['league']['season'] ?? $season)),
+                'team' => sanitize_text_field($stat['team']['name'] ?? ''),
+                'matches' => sanitize_text_field((string) ($games['appearences'] ?? '')),
+                'goals' => sanitize_text_field((string) ($goals['total'] ?? '')),
+            ];
+        }
+
+        return $mapped;
+    }
+
+    private function player_about(array $player, string $team, string $league): string
+    {
+        $parts = array_filter([
+            sanitize_text_field($player['name'] ?? ''),
+            sanitize_text_field($player['nationality'] ?? ''),
+            $team,
+            $league,
+        ]);
+
+        return $parts ? implode(' · ', $parts) : '';
+    }
+
     private function map_fixture_events(array $events): array
     {
         $mapped = [];
@@ -429,6 +617,66 @@ final class Football_Data_Sync
             <?php submit_button($label, 'primary', 'submit', false); ?>
         </form>
         <?php
+    }
+
+    private function render_players_form(): void
+    {
+        $teams = $this->player_sync_teams();
+        ?>
+        <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin: 18px 0;">
+            <?php wp_nonce_field('football_data_sync'); ?>
+            <input type="hidden" name="action" value="football_data_sync">
+            <input type="hidden" name="football_data_sync_task" value="players">
+            <label for="football_data_team_api_id" class="screen-reader-text">Команда</label>
+            <select id="football_data_team_api_id" name="football_data_team_api_id">
+                <option value="0">Все команды выбранных лиг</option>
+                <?php foreach ($teams as $team) : ?>
+                    <?php
+                    $api_id = get_post_meta($team->ID, 'football_api_id', true);
+                    $league_id = get_post_meta($team->ID, 'football_league_api_id', true);
+                    ?>
+                    <option value="<?php echo esc_attr((string) $api_id); ?>">
+                        <?php echo esc_html(get_the_title($team) . ' · league ' . $league_id); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+            <?php submit_button('Загрузить игроков', 'secondary', 'submit', false); ?>
+        </form>
+        <?php
+    }
+
+    /**
+     * @return WP_Post[]
+     */
+    private function player_sync_teams(int $team_api_id = 0): array
+    {
+        $meta_query = [];
+        if ($team_api_id) {
+            $meta_query[] = [
+                'key' => 'football_api_id',
+                'value' => (string) $team_api_id,
+            ];
+        } else {
+            $league_ids = $this->settings->selected_league_ids();
+            if (!$league_ids) {
+                return [];
+            }
+
+            $meta_query[] = [
+                'key' => 'football_league_api_id',
+                'value' => array_map('strval', $league_ids),
+                'compare' => 'IN',
+            ];
+        }
+
+        return get_posts([
+            'post_type' => 'football_team',
+            'post_status' => 'publish',
+            'posts_per_page' => -1,
+            'orderby' => 'title',
+            'order' => 'ASC',
+            'meta_query' => $meta_query,
+        ]);
     }
 
     private function upsert_post(string $post_type, int $api_id, string $title, string $content, array $meta, array &$stats): int
@@ -769,6 +1017,7 @@ final class Football_Data_Sync
             'standings' => 'Таблицы',
             'teams' => 'Команды',
             'fixtures' => 'Матчи',
+            'players' => 'Игроки',
         ];
 
         return sprintf(

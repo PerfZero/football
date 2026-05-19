@@ -768,6 +768,13 @@ img {
     padding: 28px;
 }
 
+.player-summary__photo {
+    width: 100%;
+    max-height: 320px;
+    margin-bottom: 22px;
+    object-fit: contain;
+}
+
 .player-summary h2,
 .player-panel h2 {
     margin: 0 0 18px;
@@ -843,6 +850,25 @@ img {
 .skill-row strong {
     color: #ffffff;
     text-align: right;
+}
+
+.player-metric {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    border-bottom: 1px solid rgba(160, 180, 174, 0.14);
+    padding: 12px 0;
+    color: #c6d0cc;
+}
+
+.player-metric:last-child {
+    border-bottom: 0;
+}
+
+.player-metric strong {
+    color: #60b404;
+    font-size: 1.2rem;
 }
 
 .pitch-mini {

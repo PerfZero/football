@@ -154,9 +154,28 @@ final class Football_Data_Carbon_Fields
                 Field::make('text', 'football_number', 'Номер'),
                 Field::make('text', 'football_position', 'Позиция'),
                 Field::make('text', 'football_current_team', 'Текущая команда'),
+                Field::make('text', 'football_team_api_id', 'API ID команды'),
+                Field::make('association', 'football_player_team', 'Команда')
+                    ->set_max(1)
+                    ->set_types([
+                        ['type' => 'post', 'post_type' => 'football_team'],
+                    ]),
                 Field::make('text', 'football_league_api_id', 'API ID текущей лиги'),
+                Field::make('association', 'football_player_league', 'Турнир')
+                    ->set_max(1)
+                    ->set_types([
+                        ['type' => 'post', 'post_type' => 'football_league'],
+                    ]),
+                Field::make('association', 'football_player_league_season', 'Сезон турнира')
+                    ->set_max(1)
+                    ->set_types([
+                        ['type' => 'post', 'post_type' => 'football_lg_season'],
+                    ]),
+                Field::make('text', 'football_age', 'Возраст'),
+                Field::make('checkbox', 'football_injured', 'Травмирован'),
                 Field::make('text', 'football_average_rating', 'Средняя оценка за матч'),
                 Field::make('textarea', 'football_about', 'О себе'),
+                Field::make('textarea', 'football_api_payload', 'Полный ответ API JSON'),
             ]);
 
         Container::make('post_meta', 'Статистика и карьера')
