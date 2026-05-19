@@ -42,7 +42,6 @@ function football_league_bool_label(mixed $value): string
         $season_end = football_league_meta('football_season_end');
         $season_current = football_league_meta('football_season_current');
         $type = football_league_meta('football_league_type');
-        $coverage = football_league_json_meta('football_coverage');
         $standings = football_league_meta('football_standings');
         $standings = is_array($standings) ? $standings : [];
 
@@ -170,25 +169,6 @@ function football_league_bool_label(mixed $value): string
             </div>
 
             <aside class="league-side">
-                <section class="league-panel">
-                    <h2><?php echo esc_html__('Данные API', 'football'); ?></h2>
-                    <?php if ($coverage) : ?>
-                        <ul class="league-coverage">
-                            <?php foreach ($coverage as $key => $value) : ?>
-                                <?php if (is_array($value)) : ?>
-                                    <?php foreach ($value as $sub_key => $sub_value) : ?>
-                                        <li><span><?php echo esc_html($key . ': ' . $sub_key); ?></span><strong><?php echo esc_html(football_league_bool_label($sub_value)); ?></strong></li>
-                                    <?php endforeach; ?>
-                                <?php else : ?>
-                                    <li><span><?php echo esc_html($key); ?></span><strong><?php echo esc_html(football_league_bool_label($value)); ?></strong></li>
-                                <?php endif; ?>
-                            <?php endforeach; ?>
-                        </ul>
-                    <?php else : ?>
-                        <p class="league-muted">Coverage пока не загружен.</p>
-                    <?php endif; ?>
-                </section>
-
                 <section class="league-panel">
                     <h2><?php echo esc_html__('Команды', 'football'); ?></h2>
                     <?php if ($teams) : ?>

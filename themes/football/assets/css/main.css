@@ -761,7 +761,6 @@ img {
     object-fit: contain;
 }
 
-.league-coverage,
 .league-list {
     display: grid;
     gap: 8px;
@@ -770,22 +769,9 @@ img {
     list-style: none;
 }
 
-.league-coverage li {
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    border-bottom: 1px solid var(--color-line);
-    padding-bottom: 8px;
-}
-
-.league-coverage span,
 .league-list small,
 .league-muted {
     color: var(--color-muted);
-}
-
-.league-coverage strong {
-    color: var(--color-field-dark);
 }
 
 .league-list a {
