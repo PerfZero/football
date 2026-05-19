@@ -356,7 +356,8 @@ img {
 .home-league-grid,
 .home-team-grid,
 .home-player-grid,
-.home-match-grid {
+.home-match-grid,
+.home-bookmaker-grid {
     display: grid;
     gap: 16px;
 }
@@ -377,10 +378,15 @@ img {
     grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.home-bookmaker-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .home-league-card,
 .home-team-card,
 .home-player-card,
-.home-match-card {
+.home-match-card,
+.home-bookmaker-card {
     border: 1px solid var(--color-line);
     border-radius: 8px;
     background: #ffffff;
@@ -388,7 +394,8 @@ img {
 
 .home-league-card__top,
 .home-team-card__title,
-.home-player-card__top {
+.home-player-card__top,
+.home-bookmaker-card__brand {
     display: flex;
     align-items: center;
     gap: 14px;
@@ -398,7 +405,8 @@ img {
 
 .home-league-card__logo,
 .home-team-card__logo,
-.home-player-card__photo {
+.home-player-card__photo,
+.home-bookmaker-card__logo {
     display: inline-flex;
     flex: 0 0 auto;
     align-items: center;
@@ -424,8 +432,14 @@ img {
     height: 64px;
 }
 
+.home-bookmaker-card__logo {
+    width: 72px;
+    height: 46px;
+}
+
 .home-league-card__logo img,
-.home-team-card__logo img {
+.home-team-card__logo img,
+.home-bookmaker-card__logo img {
     width: 70%;
     height: 70%;
     object-fit: contain;
@@ -439,7 +453,8 @@ img {
 
 .home-league-card strong,
 .home-team-card strong,
-.home-player-card strong {
+.home-player-card strong,
+.home-bookmaker-card strong {
     display: block;
     line-height: 1.2;
     overflow-wrap: anywhere;
@@ -447,7 +462,8 @@ img {
 
 .home-card-kicker,
 .home-team-card small,
-.home-player-card small {
+.home-player-card small,
+.home-bookmaker-card small {
     display: block;
     color: var(--color-muted);
     font-size: 0.78rem;
@@ -523,6 +539,129 @@ img {
 .home-team-card__title:focus strong,
 .home-player-card__top:hover strong,
 .home-player-card__top:focus strong {
+    text-decoration: underline;
+}
+
+.home-bookmaker-card__top {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.home-bookmaker-card__brand {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.home-bookmaker-card__rating {
+    display: grid;
+    min-width: 86px;
+    align-content: center;
+    justify-items: center;
+    border-left: 1px solid var(--color-line);
+    padding: 12px;
+    text-align: center;
+}
+
+.home-bookmaker-card__rating strong {
+    color: var(--color-field-dark);
+    font-size: 1.35rem;
+}
+
+.home-bookmaker-card__facts {
+    display: grid;
+    grid-template-columns: 1fr;
+    margin: 0;
+    border-top: 1px solid var(--color-line);
+}
+
+.home-bookmaker-card__facts div {
+    min-width: 0;
+    border-top: 1px solid var(--color-line);
+    padding: 12px 16px;
+}
+
+.home-bookmaker-card__facts div:first-child {
+    border-top: 0;
+}
+
+.home-bookmaker-card__facts dt {
+    color: var(--color-muted);
+    font-size: 0.76rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.home-bookmaker-card__facts dd {
+    margin: 4px 0 0;
+    font-weight: 900;
+    overflow-wrap: anywhere;
+}
+
+.home-bookmaker-card__review {
+    margin: 0;
+    border-top: 1px solid var(--color-line);
+    padding: 14px 16px;
+    color: var(--color-muted);
+}
+
+.home-bookmaker-card__features {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    border-top: 1px solid var(--color-line);
+    padding: 14px 16px;
+    list-style: none;
+}
+
+.home-bookmaker-card__features li {
+    display: grid;
+    gap: 3px;
+}
+
+.home-bookmaker-card__features span {
+    color: var(--color-muted);
+    font-size: 0.88rem;
+}
+
+.home-bookmaker-card__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    border-top: 1px solid var(--color-line);
+    padding: 14px 16px;
+}
+
+.home-bookmaker-card__button,
+.home-bookmaker-card__link {
+    display: inline-flex;
+    min-height: 38px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-weight: 900;
+    text-decoration: none;
+}
+
+.home-bookmaker-card__button {
+    background: var(--color-field-dark);
+    color: #ffffff;
+}
+
+.home-bookmaker-card__link {
+    border: 1px solid var(--color-line);
+    color: var(--color-field-dark);
+}
+
+.home-bookmaker-card__button:hover,
+.home-bookmaker-card__button:focus,
+.home-bookmaker-card__link:hover,
+.home-bookmaker-card__link:focus,
+.home-bookmaker-card__brand:hover strong,
+.home-bookmaker-card__brand:focus strong {
     text-decoration: underline;
 }
 
@@ -1627,7 +1766,8 @@ a.league-team-cell:focus {
     .home-league-grid,
     .home-team-grid,
     .home-player-grid,
-    .home-match-grid {
+    .home-match-grid,
+    .home-bookmaker-grid {
         grid-template-columns: 1fr;
     }
 
@@ -1664,8 +1804,18 @@ a.league-team-cell:focus {
     .home-data-list,
     .home-player-card__stats,
     .home-match-card__teams,
-    .home-match-card__facts {
+    .home-match-card__facts,
+    .home-bookmaker-card__top {
         grid-template-columns: 1fr;
+    }
+
+    .home-bookmaker-card__top {
+        display: grid;
+    }
+
+    .home-bookmaker-card__rating {
+        border-top: 1px solid var(--color-line);
+        border-left: 0;
     }
 
     .home-data-list div,

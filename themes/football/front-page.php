@@ -129,12 +129,15 @@ $fixtures = get_posts([
     'meta_key' => 'football_match_datetime',
 ]);
 
+$bookmakers = get_posts([
+    'post_type' => 'football_bookmaker',
+    'post_status' => 'publish',
+    'posts_per_page' => 6,
+    'orderby' => 'date',
+    'order' => 'DESC',
+]);
+
 $compact_sections = [
-    [
-        'title' => football_t('section.bookmakers'),
-        'post_type' => 'football_bookmaker',
-        'archive_label' => football_t('archive.bookmakers'),
-    ],
     [
         'title' => football_t('section.news'),
         'post_type' => 'post',
@@ -425,6 +428,108 @@ $compact_sections = [
                                 </dd>
                             </div>
                         </dl>
+                    </article>
+                <?php endforeach; ?>
+            </div>
+        <?php else : ?>
+            <p class="home-empty"><?php football_esc_html_t('site.no_posts'); ?></p>
+        <?php endif; ?>
+    </section>
+
+    <section class="container home-featured">
+        <header class="home-section-heading">
+            <h2><?php football_esc_html_t('home.featured_bookmakers'); ?></h2>
+            <?php $bookmakers_archive_url = football_home_archive_url('football_bookmaker'); ?>
+            <?php if ($bookmakers_archive_url) : ?>
+                <a href="<?php echo esc_url($bookmakers_archive_url); ?>"><?php football_esc_html_t('archive.bookmakers'); ?></a>
+            <?php endif; ?>
+        </header>
+
+        <?php if ($bookmakers) : ?>
+            <div class="home-bookmaker-grid">
+                <?php foreach ($bookmakers as $bookmaker) : ?>
+                    <?php
+                    $bookmaker_id = $bookmaker->ID;
+                    $logo = football_home_image_url(football_home_meta($bookmaker_id, 'football_logo'));
+                    $rating = football_home_meta($bookmaker_id, 'football_rating');
+                    $bonus = football_home_meta($bookmaker_id, 'football_bonus');
+                    $min_deposit = football_home_meta($bookmaker_id, 'football_min_deposit');
+                    $countries = football_home_meta($bookmaker_id, 'football_countries');
+                    $affiliate_url = football_home_meta($bookmaker_id, 'football_affiliate_url');
+                    $review = football_home_meta($bookmaker_id, 'football_review_summary');
+                    $features = football_home_meta($bookmaker_id, 'football_features');
+                    $features = is_array($features) ? array_slice($features, 0, 3) : [];
+                    ?>
+                    <article class="home-bookmaker-card">
+                        <div class="home-bookmaker-card__top">
+                            <a class="home-bookmaker-card__brand" href="<?php echo esc_url(get_permalink($bookmaker)); ?>">
+                                <span class="home-bookmaker-card__logo">
+                                    <?php if ($logo) : ?>
+                                        <img src="<?php echo esc_url($logo); ?>" alt="">
+                                    <?php endif; ?>
+                                </span>
+                                <span>
+                                    <strong><?php echo esc_html(get_the_title($bookmaker)); ?></strong>
+                                    <small><?php football_esc_html_t('home.review'); ?></small>
+                                </span>
+                            </a>
+
+                            <span class="home-bookmaker-card__rating">
+                                <small><?php football_esc_html_t('home.rating'); ?></small>
+                                <strong><?php echo esc_html($rating !== '' ? football_home_rating($rating) : football_t('home.not_set')); ?></strong>
+                            </span>
+                        </div>
+
+                        <dl class="home-bookmaker-card__facts">
+                            <div>
+                                <dt><?php football_esc_html_t('home.bonus'); ?></dt>
+                                <dd><?php echo esc_html($bonus ?: football_t('home.not_set')); ?></dd>
+                            </div>
+                            <div>
+                                <dt><?php football_esc_html_t('home.min_deposit'); ?></dt>
+                                <dd><?php echo esc_html($min_deposit ?: football_t('home.not_set')); ?></dd>
+                            </div>
+                            <div>
+                                <dt><?php football_esc_html_t('home.countries'); ?></dt>
+                                <dd><?php echo esc_html($countries ?: football_t('home.not_set')); ?></dd>
+                            </div>
+                        </dl>
+
+                        <?php if ($review) : ?>
+                            <p class="home-bookmaker-card__review"><?php echo esc_html(wp_trim_words($review, 22)); ?></p>
+                        <?php endif; ?>
+
+                        <?php if ($features) : ?>
+                            <ul class="home-bookmaker-card__features">
+                                <?php foreach ($features as $feature) : ?>
+                                    <?php
+                                    $feature_title = is_array($feature) ? (string) ($feature['title'] ?? '') : '';
+                                    $feature_description = is_array($feature) ? (string) ($feature['description'] ?? '') : '';
+                                    ?>
+                                    <?php if ($feature_title || $feature_description) : ?>
+                                        <li>
+                                            <?php if ($feature_title) : ?>
+                                                <strong><?php echo esc_html($feature_title); ?></strong>
+                                            <?php endif; ?>
+                                            <?php if ($feature_description) : ?>
+                                                <span><?php echo esc_html(wp_trim_words($feature_description, 12)); ?></span>
+                                            <?php endif; ?>
+                                        </li>
+                                    <?php endif; ?>
+                                <?php endforeach; ?>
+                            </ul>
+                        <?php endif; ?>
+
+                        <div class="home-bookmaker-card__actions">
+                            <?php if ($affiliate_url) : ?>
+                                <a class="home-bookmaker-card__button" href="<?php echo esc_url($affiliate_url); ?>" target="_blank" rel="nofollow sponsored noopener">
+                                    <?php football_esc_html_t('home.go_to_bookmaker'); ?>
+                                </a>
+                            <?php endif; ?>
+                            <a class="home-bookmaker-card__link" href="<?php echo esc_url(get_permalink($bookmaker)); ?>">
+                                <?php football_esc_html_t('home.review'); ?>
+                            </a>
+                        </div>
                     </article>
                 <?php endforeach; ?>
             </div>
