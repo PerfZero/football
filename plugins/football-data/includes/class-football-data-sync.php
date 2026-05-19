@@ -138,10 +138,10 @@ final class Football_Data_Sync
             }
 
             $post_id = $this->upsert_post('football_league', $api_id, $name, '', [
-                'football_logo' => esc_url_raw($league['logo'] ?? ''),
+                'football_logo' => $this->sideload_image($league['logo'] ?? '', $name . ' logo'),
                 'football_country' => sanitize_text_field($country['name'] ?? ''),
                 'football_country_code' => sanitize_text_field($country['code'] ?? ''),
-                'football_country_flag' => esc_url_raw($country['flag'] ?? ''),
+                'football_country_flag' => $this->sideload_image($country['flag'] ?? '', ($country['name'] ?? $name) . ' flag'),
                 'football_season' => $season,
                 'football_league_type' => sanitize_key($league['type'] ?? 'league'),
                 'football_season_start' => sanitize_text_field($this->season_value($item, 'start')),
@@ -182,16 +182,16 @@ final class Football_Data_Sync
             $post_id = $this->find_post_by_api_id('football_league', $league_id);
             if (!$post_id) {
                 $post_id = $this->upsert_post('football_league', $league_id, sanitize_text_field($league['name'] ?? 'League ' . $league_id), '', [
-                    'football_logo' => esc_url_raw($league['logo'] ?? ''),
+                    'football_logo' => $this->sideload_image($league['logo'] ?? '', ($league['name'] ?? 'League ' . $league_id) . ' logo'),
                     'football_country' => sanitize_text_field($league['country'] ?? ''),
-                    'football_country_flag' => esc_url_raw($league['flag'] ?? ''),
+                    'football_country_flag' => $this->sideload_image($league['flag'] ?? '', ($league['country'] ?? 'Country') . ' flag'),
                     'football_season' => $season,
                 ], $stats);
             } else {
                 $stats['updated']++;
             }
 
-            update_post_meta($post_id, 'football_standings', $league['standings'] ?? []);
+            update_post_meta($post_id, 'football_standings', $this->localize_standings_images($league['standings'] ?? []));
             update_post_meta($post_id, 'football_standings_payload', wp_json_encode($league, JSON_UNESCAPED_UNICODE));
             $this->assign_terms($post_id, 'football_season', $season);
         }
@@ -226,7 +226,7 @@ final class Football_Data_Sync
                 }
 
                 $post_id = $this->upsert_post('football_team', $api_id, $name, '', [
-                    'football_logo' => esc_url_raw($team['logo'] ?? ''),
+                    'football_logo' => $this->sideload_image($team['logo'] ?? '', $name . ' logo'),
                     'football_country' => sanitize_text_field($team['country'] ?? ''),
                     'football_city' => sanitize_text_field($venue['city'] ?? ''),
                     'football_stadium' => sanitize_text_field($venue['name'] ?? ''),
@@ -361,6 +361,120 @@ final class Football_Data_Sync
         }
 
         wp_set_object_terms($post_id, $term_name, $taxonomy, false);
+    }
+
+    private function sideload_image(string $url, string $title): int|string
+    {
+        $url = esc_url_raw($url);
+        if ($url === '') {
+            return '';
+        }
+
+        $existing = get_posts([
+            'post_type' => 'attachment',
+            'post_status' => 'inherit',
+            'fields' => 'ids',
+            'posts_per_page' => 1,
+            'meta_key' => '_football_data_source_url',
+            'meta_value' => $url,
+        ]);
+
+        if ($existing) {
+            return (int) $existing[0];
+        }
+
+        require_once ABSPATH . 'wp-admin/includes/image.php';
+        require_once ABSPATH . 'wp-admin/includes/file.php';
+        require_once ABSPATH . 'wp-admin/includes/media.php';
+
+        $allow_svg = static function (array $extensions): array {
+            $extensions[] = 'svg';
+
+            return array_values(array_unique($extensions));
+        };
+
+        add_filter('image_sideload_extensions', $allow_svg);
+        $attachment_id = media_sideload_image($url, 0, sanitize_text_field($title), 'id');
+        remove_filter('image_sideload_extensions', $allow_svg);
+
+        if (is_wp_error($attachment_id)) {
+            if (str_ends_with(strtolower((string) parse_url($url, PHP_URL_PATH)), '.svg')) {
+                return $this->sideload_svg($url, $title);
+            }
+
+            return '';
+        }
+
+        update_post_meta((int) $attachment_id, '_football_data_source_url', $url);
+
+        return (int) $attachment_id;
+    }
+
+    private function sideload_svg(string $url, string $title): int|string
+    {
+        $temporary_file = download_url($url, 20);
+        if (is_wp_error($temporary_file)) {
+            return '';
+        }
+
+        $filename = sanitize_file_name(wp_basename((string) parse_url($url, PHP_URL_PATH)));
+        if ($filename === '') {
+            $filename = sanitize_title($title) . '.svg';
+        }
+
+        $contents = file_get_contents($temporary_file);
+        @unlink($temporary_file);
+
+        if ($contents === false || trim($contents) === '') {
+            return '';
+        }
+
+        $upload_dir = wp_upload_dir();
+        if (!empty($upload_dir['error']) || empty($upload_dir['path'])) {
+            return '';
+        }
+
+        wp_mkdir_p($upload_dir['path']);
+        $filename = wp_unique_filename($upload_dir['path'], $filename);
+        $file_path = trailingslashit($upload_dir['path']) . $filename;
+
+        if (file_put_contents($file_path, $contents) === false) {
+            return '';
+        }
+
+        $attachment_id = wp_insert_attachment([
+            'post_mime_type' => 'image/svg+xml',
+            'post_title' => sanitize_text_field($title),
+            'post_status' => 'inherit',
+        ], $file_path);
+
+        if (is_wp_error($attachment_id) || !$attachment_id) {
+            return '';
+        }
+
+        update_post_meta((int) $attachment_id, '_football_data_source_url', $url);
+
+        return (int) $attachment_id;
+    }
+
+    private function localize_standings_images(array $standings): array
+    {
+        foreach ($standings as $group_index => $group) {
+            if (!is_array($group)) {
+                continue;
+            }
+
+            foreach ($group as $row_index => $row) {
+                $logo = $row['team']['logo'] ?? '';
+                $team_name = $row['team']['name'] ?? 'Team';
+
+                if ($logo) {
+                    $standings[$group_index][$row_index]['team']['logo'] = $this->sideload_image($logo, $team_name . ' logo');
+                }
+            }
+        }
+
+        return $standings;
     }
 
     private function default_season(): string

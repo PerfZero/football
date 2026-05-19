@@ -54,10 +54,10 @@ final class Football_Data_Carbon_Fields
             ->where('post_type', '=', 'football_league')
             ->add_fields([
                 Field::make('text', 'football_api_id', 'API ID'),
-                Field::make('image', 'football_logo', 'Логотип')->set_value_type('url'),
+                Field::make('image', 'football_logo', 'Логотип'),
                 Field::make('text', 'football_country', 'Страна'),
                 Field::make('text', 'football_country_code', 'Код страны'),
-                Field::make('image', 'football_country_flag', 'Флаг страны')->set_value_type('url'),
+                Field::make('image', 'football_country_flag', 'Флаг страны'),
                 Field::make('text', 'football_season', 'Сезон'),
                 Field::make('text', 'football_season_start', 'Дата начала сезона'),
                 Field::make('text', 'football_season_end', 'Дата окончания сезона'),
@@ -67,9 +67,6 @@ final class Football_Data_Carbon_Fields
                         'league' => 'Лига',
                         'cup' => 'Кубок',
                     ]),
-                Field::make('textarea', 'football_coverage', 'Доступные данные API'),
-                Field::make('textarea', 'football_api_payload', 'Полный ответ API по турниру'),
-                Field::make('textarea', 'football_standings_payload', 'Полный ответ API по таблице'),
                 Field::make('textarea', 'football_short_description', 'Короткое описание'),
             ]);
     }
@@ -80,7 +77,7 @@ final class Football_Data_Carbon_Fields
             ->where('post_type', '=', 'football_team')
             ->add_fields([
                 Field::make('text', 'football_api_id', 'API ID'),
-                Field::make('image', 'football_logo', 'Логотип')->set_value_type('url'),
+                Field::make('image', 'football_logo', 'Логотип'),
                 Field::make('text', 'football_country', 'Страна'),
                 Field::make('text', 'football_city', 'Город'),
                 Field::make('text', 'football_stadium', 'Стадион'),
@@ -96,7 +93,7 @@ final class Football_Data_Carbon_Fields
             ->where('post_type', '=', 'football_player')
             ->add_fields([
                 Field::make('text', 'football_api_id', 'API ID'),
-                Field::make('image', 'football_photo', 'Фото игрока')->set_value_type('url'),
+                Field::make('image', 'football_photo', 'Фото игрока'),
                 Field::make('text', 'football_first_name', 'Имя'),
                 Field::make('text', 'football_last_name', 'Фамилия'),
                 Field::make('date', 'football_birth_date', 'Дата рождения'),
@@ -203,7 +200,7 @@ final class Football_Data_Carbon_Fields
             ->where('post_type', '=', 'football_bookmaker')
             ->add_fields([
                 Field::make('text', 'football_api_id', 'API ID'),
-                Field::make('image', 'football_logo', 'Логотип')->set_value_type('url'),
+                Field::make('image', 'football_logo', 'Логотип'),
                 Field::make('text', 'football_rating', 'Рейтинг'),
                 Field::make('text', 'football_bonus', 'Бонус'),
                 Field::make('text', 'football_min_deposit', 'Минимальный депозит'),

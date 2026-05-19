@@ -66,7 +66,7 @@ final class Football_Data_CPT
             'public' => true,
             'show_in_rest' => true,
             'menu_icon' => $icon,
-            'supports' => ['title', 'editor', 'thumbnail', 'excerpt', 'custom-fields', 'revisions'],
+            'supports' => ['title', 'editor', 'thumbnail', 'excerpt', 'revisions'],
             'has_archive' => true,
             'rewrite' => ['slug' => $slug],
         ]);

@@ -22,6 +22,15 @@ function football_league_json_meta(string $key): array
     return is_array($decoded) ? $decoded : [];
 }
 
+function football_league_image_url(mixed $value): string
+{
+    if (is_numeric($value)) {
+        return wp_get_attachment_image_url((int) $value, 'full') ?: '';
+    }
+
+    return esc_url_raw((string) $value);
+}
+
 function football_league_bool_label(mixed $value): string
 {
     return $value ? 'Да' : 'Нет';
@@ -33,10 +42,10 @@ function football_league_bool_label(mixed $value): string
         <?php the_post(); ?>
         <?php
         $api_id = football_league_meta('football_api_id');
-        $logo = football_league_meta('football_logo');
+        $logo = football_league_image_url(football_league_meta('football_logo'));
         $country = football_league_meta('football_country');
         $country_code = football_league_meta('football_country_code');
-        $country_flag = football_league_meta('football_country_flag');
+        $country_flag = football_league_image_url(football_league_meta('football_country_flag'));
         $season = football_league_meta('football_season');
         $season_start = football_league_meta('football_season_start');
         $season_end = football_league_meta('football_season_end');
@@ -143,8 +152,9 @@ function football_league_bool_label(mixed $value): string
                                             <td><?php echo esc_html($row['rank'] ?? ''); ?></td>
                                             <td>
                                                 <span class="league-team-cell">
-                                                    <?php if (!empty($row['team']['logo'])) : ?>
-                                                        <img src="<?php echo esc_url($row['team']['logo']); ?>" alt="">
+                                                    <?php $team_logo = football_league_image_url($row['team']['logo'] ?? ''); ?>
+                                                    <?php if ($team_logo) : ?>
+                                                        <img src="<?php echo esc_url($team_logo); ?>" alt="">
                                                     <?php endif; ?>
                                                     <?php echo esc_html($row['team']['name'] ?? ''); ?>
                                                 </span>
