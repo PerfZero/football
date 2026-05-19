@@ -100,17 +100,51 @@ final class Football_Data_CPT
         echo '<img class="football-data-admin-thumb football-data-admin-thumb--cover" src="' . esc_url($image) . '" alt="">';
     }
 
+    public function fixture_columns(array $columns): array
+    {
+        return $this->add_image_column($columns, 'football_fixture_image', 'Фото');
+    }
+
+    public function render_fixture_column(string $column, int $post_id): void
+    {
+        if ($column !== 'football_fixture_image') {
+            return;
+        }
+
+        $home_logo = $this->fixture_team_logo($post_id, 'football_home_team_post_id');
+        $away_logo = $this->fixture_team_logo($post_id, 'football_away_team_post_id');
+
+        if ($home_logo === '' && $away_logo === '') {
+            echo '<span class="football-data-admin-thumb football-data-admin-thumb--empty">-</span>';
+            return;
+        }
+
+        echo '<span class="football-data-admin-match-thumbs">';
+
+        foreach ([$home_logo, $away_logo] as $logo) {
+            if ($logo === '') {
+                echo '<span class="football-data-admin-match-thumb football-data-admin-match-thumb--empty">-</span>';
+                continue;
+            }
+
+            echo '<img class="football-data-admin-match-thumb" src="' . esc_url($logo) . '" alt="">';
+        }
+
+        echo '</span>';
+    }
+
     public function admin_list_styles(): void
     {
         $screen = get_current_screen();
-        if (!$screen || !in_array($screen->post_type, ['football_venue', 'football_team', 'football_player'], true)) {
+        if (!$screen || !in_array($screen->post_type, ['football_venue', 'football_team', 'football_player', 'football_fixture'], true)) {
             return;
         }
 
         echo '<style>
             .column-football_venue_image,
             .column-football_team_image,
-            .column-football_player_image { width: 92px; }
+            .column-football_player_image,
+            .column-football_fixture_image { width: 92px; }
             .football-data-admin-thumb {
                 width: 72px;
                 height: 48px;
@@ -123,6 +157,25 @@ final class Football_Data_CPT
             }
             .football-data-admin-thumb--cover { object-fit: cover; }
             .football-data-admin-thumb--contain { object-fit: contain; padding: 6px; }
+            .football-data-admin-match-thumbs {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+            }
+            .football-data-admin-match-thumb {
+                width: 34px;
+                height: 34px;
+                border-radius: 4px;
+                object-fit: contain;
+                background: #f0f0f1;
+                padding: 4px;
+            }
+            .football-data-admin-match-thumb--empty {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                color: #646970;
+            }
         </style>';
     }
 
@@ -194,6 +247,16 @@ final class Football_Data_CPT
         }
 
         return esc_url_raw((string) $image);
+    }
+
+    private function fixture_team_logo(int $fixture_id, string $team_meta_key): string
+    {
+        $team_id = absint(get_post_meta($fixture_id, $team_meta_key, true));
+        if (!$team_id) {
+            return '';
+        }
+
+        return $this->image_url(get_post_meta($team_id, 'football_logo', true));
     }
 
     private function venue_fallback_team_image(int $venue_id): mixed
