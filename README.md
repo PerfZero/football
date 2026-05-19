@@ -77,6 +77,20 @@ The plugin exposes an admin-only check endpoint for selected leagues:
 
 It uses transient cache, so repeated checks do not immediately spend API limits.
 
+Data is imported from the admin sync screen:
+
+```text
+Football Data -> Синхронизация
+```
+
+Recommended order:
+
+1. `Загрузить турниры`
+2. `Загрузить команды`
+3. `Загрузить матчи сезона`
+
+Every sync action works only with selected league IDs and updates existing WordPress records by `football_api_id`.
+
 Useful local endpoints:
 
 - http://localhost:8080/wp-json/football-data/v1/status

@@ -13,6 +13,7 @@ final class Football_Data_Plugin
     public Football_Data_Api_Client $api;
     public Football_Data_Mock_Repository $mock;
     public Football_Data_REST $rest;
+    public Football_Data_Sync $sync;
     public Football_Data_Shortcodes $shortcodes;
     public Football_Data_Carbon_Fields $carbon_fields;
     public Football_Data_I18n $i18n;
@@ -33,13 +34,16 @@ final class Football_Data_Plugin
         $this->api = new Football_Data_Api_Client($this->settings);
         $this->mock = new Football_Data_Mock_Repository();
         $this->rest = new Football_Data_REST($this->settings, $this->mock, $this->api);
+        $this->sync = new Football_Data_Sync($this->settings, $this->api);
         $this->shortcodes = new Football_Data_Shortcodes($this->mock);
         $this->carbon_fields = new Football_Data_Carbon_Fields();
         $this->i18n = new Football_Data_I18n();
 
         add_action('init', [$this->cpt, 'register']);
         add_action('admin_menu', [$this->settings, 'register_admin_pages']);
+        add_action('admin_menu', [$this->sync, 'register_admin_page']);
         add_action('admin_init', [$this->settings, 'register_settings']);
+        add_action('admin_post_football_data_sync', [$this->sync, 'handle_admin_action']);
         add_action('rest_api_init', [$this->rest, 'register_routes']);
         add_action('init', [$this->shortcodes, 'register']);
         add_action('after_setup_theme', [$this->carbon_fields, 'boot']);

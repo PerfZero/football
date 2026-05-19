@@ -249,6 +249,7 @@ final class Football_Data_Settings
                         <th scope="row"><label for="football_data_season">Сезон по умолчанию</label></th>
                         <td>
                             <input id="football_data_season" class="regular-text" name="<?php echo esc_attr(self::OPTION_NAME); ?>[default_season]" value="<?php echo esc_attr($settings['default_season']); ?>">
+                            <p class="description">В API-Football сезон — это год старта сезона. Например, для 2024/25 укажите <code>2024</code>, для 2025/26 — <code>2025</code>.</p>
                         </td>
                     </tr>
                     <tr>

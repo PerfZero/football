@@ -28,6 +28,7 @@ require_once FOOTBALL_DATA_DIR . 'includes/class-football-data-cpt.php';
 require_once FOOTBALL_DATA_DIR . 'includes/class-football-data-api-client.php';
 require_once FOOTBALL_DATA_DIR . 'includes/class-football-data-mock-repository.php';
 require_once FOOTBALL_DATA_DIR . 'includes/class-football-data-rest.php';
+require_once FOOTBALL_DATA_DIR . 'includes/class-football-data-sync.php';
 require_once FOOTBALL_DATA_DIR . 'includes/class-football-data-shortcodes.php';
 require_once FOOTBALL_DATA_DIR . 'includes/class-football-data-carbon-fields.php';
 require_once FOOTBALL_DATA_DIR . 'includes/class-football-data-i18n.php';

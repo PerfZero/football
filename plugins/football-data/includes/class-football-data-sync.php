@@ -1,0 +1,348 @@
+<?php
+
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+final class Football_Data_Sync
+{
+    public function __construct(
+        private Football_Data_Settings $settings,
+        private Football_Data_Api_Client $api
+    ) {
+    }
+
+    public function register_admin_page(): void
+    {
+        add_submenu_page(
+            'football-data',
+            'Синхронизация',
+            'Синхронизация',
+            'manage_options',
+            'football-data-sync',
+            [$this, 'render_page']
+        );
+    }
+
+    public function handle_admin_action(): void
+    {
+        if (!current_user_can('manage_options')) {
+            wp_die('Недостаточно прав.');
+        }
+
+        check_admin_referer('football_data_sync');
+
+        $task = sanitize_key($_POST['football_data_sync_task'] ?? '');
+        $result = match ($task) {
+            'leagues' => $this->sync_leagues(),
+            'teams' => $this->sync_teams(),
+            'fixtures' => $this->sync_fixtures(),
+            default => new WP_Error('football_data_unknown_sync_task', 'Неизвестная задача синхронизации.'),
+        };
+
+        $payload = is_wp_error($result)
+            ? ['type' => 'error', 'message' => $result->get_error_message()]
+            : ['type' => 'success', 'message' => $this->format_result_message($task, $result)];
+
+        set_transient($this->notice_key(), $payload, 60);
+
+        wp_safe_redirect(admin_url('admin.php?page=football-data-sync'));
+        exit;
+    }
+
+    public function render_page(): void
+    {
+        $settings = $this->settings->get();
+        $league_ids = $this->settings->selected_league_ids();
+        $notice = get_transient($this->notice_key());
+        delete_transient($this->notice_key());
+        ?>
+        <div class="wrap">
+            <h1>Синхронизация Football Data</h1>
+            <p>Загрузка работает только по лигам, выбранным в настройках API. Это защищает лимиты и не тянет весь API целиком.</p>
+
+            <?php if (is_array($notice)) : ?>
+                <div class="notice notice-<?php echo esc_attr($notice['type']); ?> is-dismissible">
+                    <p><?php echo esc_html($notice['message']); ?></p>
+                </div>
+            <?php endif; ?>
+
+            <h2>Текущие настройки</h2>
+            <table class="widefat striped" style="max-width: 900px;">
+                <tbody>
+                <tr>
+                    <th>Источник</th>
+                    <td><?php echo esc_html($this->settings->is_mock_mode() ? 'Мок-данные' : 'Реальный API'); ?></td>
+                </tr>
+                <tr>
+                    <th>Ключ API</th>
+                    <td><?php echo esc_html($this->settings->api_key_configured() ? 'Задан' : 'Не задан'); ?></td>
+                </tr>
+                <tr>
+                    <th>Сезон</th>
+                    <td><code><?php echo esc_html($settings['default_season']); ?></code></td>
+                </tr>
+                <tr>
+                    <th>Лиги</th>
+                    <td><?php echo $league_ids ? '<code>' . esc_html(implode(', ', $league_ids)) . '</code>' : 'Не выбраны'; ?></td>
+                </tr>
+                <tr>
+                    <th>Кэш API</th>
+                    <td><?php echo esc_html($this->settings->api_cache_ttl()); ?> сек.</td>
+                </tr>
+                </tbody>
+            </table>
+
+            <h2>Загрузить данные</h2>
+            <p>Рекомендуемый порядок: сначала турниры, потом команды, потом матчи. Игроков добавим отдельным порционным синком, потому что этот endpoint самый тяжёлый по лимитам.</p>
+            <p>Если синхронизация возвращает 0 созданных и 0 обновлённых записей, сначала проверьте сезон: для сезона 2024/25 в API нужно указывать <code>2024</code>, для 2025/26 — <code>2025</code>.</p>
+
+            <div style="display: flex; gap: 12px; flex-wrap: wrap; margin: 18px 0;">
+                <?php $this->render_button('leagues', 'Загрузить турниры'); ?>
+                <?php $this->render_button('teams', 'Загрузить команды'); ?>
+                <?php $this->render_button('fixtures', 'Загрузить матчи сезона'); ?>
+            </div>
+
+            <h2>Что уже есть в WordPress</h2>
+            <table class="widefat striped" style="max-width: 900px;">
+                <tbody>
+                <tr><th>Турниры</th><td><?php echo esc_html(wp_count_posts('football_league')->publish ?? 0); ?></td></tr>
+                <tr><th>Команды</th><td><?php echo esc_html(wp_count_posts('football_team')->publish ?? 0); ?></td></tr>
+                <tr><th>Матчи</th><td><?php echo esc_html(wp_count_posts('football_fixture')->publish ?? 0); ?></td></tr>
+                </tbody>
+            </table>
+        </div>
+        <?php
+    }
+
+    public function sync_leagues(): array|WP_Error
+    {
+        $season = $this->default_season();
+        $items = $this->api->selected_leagues($season);
+        if (is_wp_error($items)) {
+            return $items;
+        }
+
+        $stats = $this->empty_stats(1);
+        foreach ($items as $item) {
+            $league = $item['league'] ?? [];
+            $country = $item['country'] ?? [];
+            $api_id = absint($league['id'] ?? 0);
+            $name = sanitize_text_field($league['name'] ?? '');
+
+            if (!$api_id || $name === '') {
+                $stats['skipped']++;
+                continue;
+            }
+
+            $post_id = $this->upsert_post('football_league', $api_id, $name, '', [
+                'football_logo' => esc_url_raw($league['logo'] ?? ''),
+                'football_country' => sanitize_text_field($country['name'] ?? ''),
+                'football_season' => $season,
+                'football_league_type' => sanitize_key($league['type'] ?? 'league'),
+            ], $stats);
+
+            $this->assign_terms($post_id, 'football_country', $country['name'] ?? '');
+            $this->assign_terms($post_id, 'football_season', $season);
+        }
+
+        return $stats;
+    }
+
+    public function sync_teams(): array|WP_Error
+    {
+        $season = $this->default_season();
+        $league_ids = $this->settings->selected_league_ids();
+        if (!$league_ids) {
+            return new WP_Error('football_data_no_selected_leagues', 'В настройках не выбраны лиги для загрузки.');
+        }
+
+        $stats = $this->empty_stats(count($league_ids));
+        foreach ($league_ids as $league_id) {
+            $response = $this->api->request_for_league('teams', $league_id, ['season' => $season]);
+            if (is_wp_error($response)) {
+                return $response;
+            }
+
+            foreach ($response['response'] ?? [] as $item) {
+                $team = $item['team'] ?? [];
+                $venue = $item['venue'] ?? [];
+                $api_id = absint($team['id'] ?? 0);
+                $name = sanitize_text_field($team['name'] ?? '');
+
+                if (!$api_id || $name === '') {
+                    $stats['skipped']++;
+                    continue;
+                }
+
+                $post_id = $this->upsert_post('football_team', $api_id, $name, '', [
+                    'football_logo' => esc_url_raw($team['logo'] ?? ''),
+                    'football_country' => sanitize_text_field($team['country'] ?? ''),
+                    'football_city' => sanitize_text_field($venue['city'] ?? ''),
+                    'football_stadium' => sanitize_text_field($venue['name'] ?? ''),
+                    'football_founded' => sanitize_text_field((string) ($team['founded'] ?? '')),
+                    'football_league_api_id' => (string) $league_id,
+                ], $stats);
+
+                $this->assign_terms($post_id, 'football_country', $team['country'] ?? '');
+            }
+        }
+
+        return $stats;
+    }
+
+    public function sync_fixtures(): array|WP_Error
+    {
+        $season = $this->default_season();
+        $settings = $this->settings->get();
+        $league_ids = $this->settings->selected_league_ids();
+        if (!$league_ids) {
+            return new WP_Error('football_data_no_selected_leagues', 'В настройках не выбраны лиги для загрузки.');
+        }
+
+        $stats = $this->empty_stats(count($league_ids));
+        foreach ($league_ids as $league_id) {
+            $response = $this->api->request_for_league('fixtures', $league_id, [
+                'season' => $season,
+                'timezone' => $settings['timezone'],
+            ]);
+            if (is_wp_error($response)) {
+                return $response;
+            }
+
+            foreach ($response['response'] ?? [] as $item) {
+                $fixture = $item['fixture'] ?? [];
+                $league = $item['league'] ?? [];
+                $teams = $item['teams'] ?? [];
+                $goals = $item['goals'] ?? [];
+                $api_id = absint($fixture['id'] ?? 0);
+                $home = sanitize_text_field($teams['home']['name'] ?? '');
+                $away = sanitize_text_field($teams['away']['name'] ?? '');
+
+                if (!$api_id || $home === '' || $away === '') {
+                    $stats['skipped']++;
+                    continue;
+                }
+
+                $post_id = $this->upsert_post('football_fixture', $api_id, $home . ' - ' . $away, '', [
+                    'football_league_api_id' => (string) $league_id,
+                    'football_league_name' => sanitize_text_field($league['name'] ?? ''),
+                    'football_round' => sanitize_text_field($league['round'] ?? ''),
+                    'football_match_datetime' => sanitize_text_field($fixture['date'] ?? ''),
+                    'football_venue' => sanitize_text_field($fixture['venue']['name'] ?? ''),
+                    'football_status' => sanitize_text_field($fixture['status']['long'] ?? ''),
+                    'football_home_team' => $home,
+                    'football_away_team' => $away,
+                    'football_home_score' => sanitize_text_field((string) ($goals['home'] ?? '')),
+                    'football_away_score' => sanitize_text_field((string) ($goals['away'] ?? '')),
+                ], $stats);
+
+                $this->assign_terms($post_id, 'football_season', $season);
+            }
+        }
+
+        return $stats;
+    }
+
+    private function render_button(string $task, string $label): void
+    {
+        ?>
+        <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
+            <?php wp_nonce_field('football_data_sync'); ?>
+            <input type="hidden" name="action" value="football_data_sync">
+            <input type="hidden" name="football_data_sync_task" value="<?php echo esc_attr($task); ?>">
+            <?php submit_button($label, 'primary', 'submit', false); ?>
+        </form>
+        <?php
+    }
+
+    private function upsert_post(string $post_type, int $api_id, string $title, string $content, array $meta, array &$stats): int
+    {
+        $existing = get_posts([
+            'post_type' => $post_type,
+            'post_status' => 'any',
+            'fields' => 'ids',
+            'posts_per_page' => 1,
+            'meta_key' => 'football_api_id',
+            'meta_value' => (string) $api_id,
+        ]);
+
+        $post_data = [
+            'post_type' => $post_type,
+            'post_status' => 'publish',
+            'post_title' => $title,
+            'post_content' => $content,
+        ];
+
+        if ($existing) {
+            $post_data['ID'] = (int) $existing[0];
+            $post_id = wp_update_post($post_data, true);
+            $stats['updated']++;
+        } else {
+            $post_id = wp_insert_post($post_data, true);
+            $stats['created']++;
+        }
+
+        if (is_wp_error($post_id)) {
+            $stats['skipped']++;
+            return 0;
+        }
+
+        update_post_meta($post_id, 'football_api_id', (string) $api_id);
+        foreach ($meta as $key => $value) {
+            update_post_meta($post_id, $key, $value);
+        }
+
+        return (int) $post_id;
+    }
+
+    private function assign_terms(int $post_id, string $taxonomy, string $term_name): void
+    {
+        $term_name = trim($term_name);
+        if (!$post_id || $term_name === '') {
+            return;
+        }
+
+        wp_set_object_terms($post_id, $term_name, $taxonomy, false);
+    }
+
+    private function default_season(): string
+    {
+        $settings = $this->settings->get();
+
+        return sanitize_text_field($settings['default_season']);
+    }
+
+    private function empty_stats(int $requests): array
+    {
+        return [
+            'requests' => $requests,
+            'created' => 0,
+            'updated' => 0,
+            'skipped' => 0,
+        ];
+    }
+
+    private function format_result_message(string $task, array $result): string
+    {
+        $labels = [
+            'leagues' => 'Турниры',
+            'teams' => 'Команды',
+            'fixtures' => 'Матчи',
+        ];
+
+        return sprintf(
+            '%s: запросов %d, создано %d, обновлено %d, пропущено %d.',
+            $labels[$task] ?? 'Синхронизация',
+            $result['requests'],
+            $result['created'],
+            $result['updated'],
+            $result['skipped']
+        );
+    }
+
+    private function notice_key(): string
+    {
+        return 'football_data_sync_notice_' . get_current_user_id();
+    }
+}
