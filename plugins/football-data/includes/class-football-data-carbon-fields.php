@@ -77,6 +77,7 @@ final class Football_Data_Carbon_Fields
                 Field::make('text', 'football_city', 'Город'),
                 Field::make('text', 'football_stadium', 'Стадион'),
                 Field::make('text', 'football_founded', 'Год основания'),
+                Field::make('text', 'football_league_api_id', 'API ID основной лиги'),
                 Field::make('textarea', 'football_short_description', 'Короткое описание'),
             ]);
     }
@@ -99,6 +100,7 @@ final class Football_Data_Carbon_Fields
                 Field::make('text', 'football_number', 'Номер'),
                 Field::make('text', 'football_position', 'Позиция'),
                 Field::make('text', 'football_current_team', 'Текущая команда'),
+                Field::make('text', 'football_league_api_id', 'API ID текущей лиги'),
                 Field::make('text', 'football_average_rating', 'Средняя оценка за матч'),
                 Field::make('textarea', 'football_about', 'О себе'),
             ]);
@@ -141,6 +143,7 @@ final class Football_Data_Carbon_Fields
             ->where('post_type', '=', 'football_fixture')
             ->add_fields([
                 Field::make('text', 'football_api_id', 'API ID'),
+                Field::make('text', 'football_league_api_id', 'API ID лиги'),
                 Field::make('text', 'football_league_name', 'Турнир'),
                 Field::make('text', 'football_round', 'Тур/стадия'),
                 Field::make('date_time', 'football_match_datetime', 'Дата и время матча'),

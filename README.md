@@ -56,6 +56,27 @@ cd plugins/football-data
 composer install
 ```
 
+API-Football is intentionally scoped by league. In the WordPress admin area open:
+
+```text
+Football Data -> Настройки API
+```
+
+Then fill:
+
+- `API key`, or set `FOOTBALL_DATA_API_KEY` in a local `.env` file.
+- `Лиги для загрузки`, using API-Football league IDs, one per line or comma-separated.
+
+Examples: Premier League `39`, La Liga `140`, Bundesliga `78`, Serie A `135`, Ligue 1 `61`, Champions League `2`.
+
+The plugin exposes an admin-only check endpoint for selected leagues:
+
+```text
+/wp-json/football-data/v1/api/leagues/selected
+```
+
+It uses transient cache, so repeated checks do not immediately spend API limits.
+
 Useful local endpoints:
 
 - http://localhost:8080/wp-json/football-data/v1/status

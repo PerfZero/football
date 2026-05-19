@@ -16,6 +16,8 @@ final class Football_Data_Settings
             'mock_mode' => '1',
             'timezone' => 'Europe/Moscow',
             'default_season' => '2024',
+            'selected_leagues' => '',
+            'api_cache_ttl' => '3600',
             'languages' => 'ru,en,es,pt,fr,de',
         ];
     }
@@ -36,7 +38,51 @@ final class Football_Data_Settings
     {
         $settings = $this->get();
 
-        return $settings['mock_mode'] === '1' || empty($settings['api_key']);
+        return $settings['mock_mode'] === '1' || !$this->api_key_configured();
+    }
+
+    public function api_key(): string
+    {
+        if (defined('FOOTBALL_DATA_API_KEY') && FOOTBALL_DATA_API_KEY) {
+            return (string) FOOTBALL_DATA_API_KEY;
+        }
+
+        $environment_key = getenv('FOOTBALL_DATA_API_KEY');
+        if ($environment_key) {
+            return (string) $environment_key;
+        }
+
+        $settings = $this->get();
+
+        return (string) $settings['api_key'];
+    }
+
+    public function api_key_configured(): bool
+    {
+        return $this->api_key() !== '';
+    }
+
+    public function selected_league_ids(): array
+    {
+        $settings = $this->get();
+        $raw_ids = preg_split('/[\s,;]+/', (string) $settings['selected_leagues']);
+        $ids = [];
+
+        foreach ($raw_ids as $raw_id) {
+            $id = absint($raw_id);
+            if ($id > 0) {
+                $ids[$id] = $id;
+            }
+        }
+
+        return array_values($ids);
+    }
+
+    public function api_cache_ttl(): int
+    {
+        $settings = $this->get();
+
+        return max(300, absint($settings['api_cache_ttl'] ?? 3600));
     }
 
     public function register_settings(): void
@@ -58,8 +104,25 @@ final class Football_Data_Settings
             'mock_mode' => !empty($input['mock_mode']) ? '1' : '0',
             'timezone' => sanitize_text_field($input['timezone'] ?? $defaults['timezone']),
             'default_season' => sanitize_text_field($input['default_season'] ?? $defaults['default_season']),
+            'selected_leagues' => $this->sanitize_league_ids($input['selected_leagues'] ?? ''),
+            'api_cache_ttl' => (string) max(300, absint($input['api_cache_ttl'] ?? $defaults['api_cache_ttl'])),
             'languages' => sanitize_text_field($input['languages'] ?? $defaults['languages']),
         ];
+    }
+
+    private function sanitize_league_ids(string $value): string
+    {
+        $raw_ids = preg_split('/[\s,;]+/', $value);
+        $ids = [];
+
+        foreach ($raw_ids as $raw_id) {
+            $id = absint($raw_id);
+            if ($id > 0) {
+                $ids[$id] = $id;
+            }
+        }
+
+        return implode("\n", array_values($ids));
     }
 
     public function register_admin_pages(): void
@@ -106,6 +169,15 @@ final class Football_Data_Settings
                 <tr>
                     <th>Сезон по умолчанию</th>
                     <td><?php echo esc_html($settings['default_season']); ?></td>
+                </tr>
+                <tr>
+                    <th>Выбранные лиги API</th>
+                    <td>
+                        <?php
+                        $league_ids = $this->selected_league_ids();
+                        echo $league_ids ? '<code>' . esc_html(implode(', ', $league_ids)) . '</code>' : 'Не выбраны';
+                        ?>
+                    </td>
                 </tr>
                 <tr>
                     <th>Языки</th>
@@ -155,7 +227,7 @@ final class Football_Data_Settings
                         <th scope="row"><label for="football_data_api_key">API key</label></th>
                         <td>
                             <input id="football_data_api_key" class="regular-text" type="password" name="<?php echo esc_attr(self::OPTION_NAME); ?>[api_key]" value="<?php echo esc_attr($settings['api_key']); ?>" autocomplete="new-password">
-                            <p class="description">Пока ключа нет, оставляем пустым и работаем на мок-данных.</p>
+                            <p class="description">Ключ можно хранить здесь или в переменной окружения <code>FOOTBALL_DATA_API_KEY</code>. В код и Git ключ не добавляем.</p>
                         </td>
                     </tr>
                     <tr>
@@ -177,6 +249,21 @@ final class Football_Data_Settings
                         <th scope="row"><label for="football_data_season">Сезон по умолчанию</label></th>
                         <td>
                             <input id="football_data_season" class="regular-text" name="<?php echo esc_attr(self::OPTION_NAME); ?>[default_season]" value="<?php echo esc_attr($settings['default_season']); ?>">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="football_data_selected_leagues">Лиги для загрузки</label></th>
+                        <td>
+                            <textarea id="football_data_selected_leagues" class="large-text code" rows="6" name="<?php echo esc_attr(self::OPTION_NAME); ?>[selected_leagues]"><?php echo esc_textarea($settings['selected_leagues']); ?></textarea>
+                            <p class="description">ID лиг API-Football, по одному на строку или через запятую. Синхронизация должна ходить только по этому списку, чтобы не грузить все турниры подряд.</p>
+                            <p class="description">Примеры ID: АПЛ — <code>39</code>, Ла Лига — <code>140</code>, Бундеслига — <code>78</code>, Серия A — <code>135</code>, Лига 1 — <code>61</code>, Лига чемпионов — <code>2</code>.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="football_data_api_cache_ttl">Кэш API, секунд</label></th>
+                        <td>
+                            <input id="football_data_api_cache_ttl" class="regular-text" type="number" min="300" step="60" name="<?php echo esc_attr(self::OPTION_NAME); ?>[api_cache_ttl]" value="<?php echo esc_attr($settings['api_cache_ttl']); ?>">
+                            <p class="description">Минимум 300 секунд. Нужен, чтобы повторные проверки не тратили лимиты API.</p>
                         </td>
                     </tr>
                     <tr>

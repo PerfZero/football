@@ -13,8 +13,9 @@ final class Football_Data_Api_Client
     public function request(string $endpoint, array $params = []): array|WP_Error
     {
         $settings = $this->settings->get();
+        $api_key = $this->settings->api_key();
 
-        if (empty($settings['api_key'])) {
+        if ($api_key === '') {
             return new WP_Error('football_data_no_api_key', 'API key не задан. Включите мок-режим или добавьте ключ в настройках.');
         }
 
@@ -26,7 +27,7 @@ final class Football_Data_Api_Client
         $response = wp_remote_get($url, [
             'timeout' => 20,
             'headers' => [
-                'x-apisports-key' => $settings['api_key'],
+                'x-apisports-key' => $api_key,
             ],
         ]);
 
@@ -45,5 +46,70 @@ final class Football_Data_Api_Client
         }
 
         return is_array($body) ? $body : [];
+    }
+
+    public function request_cached(string $endpoint, array $params = [], ?int $ttl = null): array|WP_Error
+    {
+        ksort($params);
+
+        $cache_key = 'football_data_api_' . md5($endpoint . ':' . wp_json_encode($params));
+        $cached = get_transient($cache_key);
+        if (is_array($cached)) {
+            return $cached;
+        }
+
+        $response = $this->request($endpoint, $params);
+        if (!is_wp_error($response)) {
+            set_transient($cache_key, $response, $ttl ?? $this->settings->api_cache_ttl());
+        }
+
+        return $response;
+    }
+
+    public function request_for_league(string $endpoint, int $league_id, array $params = []): array|WP_Error
+    {
+        if (!$this->is_league_allowed($league_id)) {
+            return new WP_Error(
+                'football_data_league_not_allowed',
+                'Лига не выбрана в настройках Football Data.',
+                ['league_id' => $league_id]
+            );
+        }
+
+        return $this->request_cached($endpoint, array_merge($params, [
+            'league' => $league_id,
+        ]));
+    }
+
+    public function selected_leagues(?string $season = null): array|WP_Error
+    {
+        $league_ids = $this->settings->selected_league_ids();
+        if (!$league_ids) {
+            return new WP_Error('football_data_no_selected_leagues', 'В настройках не выбраны лиги для загрузки.');
+        }
+
+        $items = [];
+        foreach ($league_ids as $league_id) {
+            $params = ['id' => $league_id];
+            if ($season !== null && $season !== '') {
+                $params['season'] = $season;
+            }
+
+            $response = $this->request_cached('leagues', $params);
+            if (is_wp_error($response)) {
+                return $response;
+            }
+
+            foreach ($response['response'] ?? [] as $item) {
+                $items[] = $item;
+            }
+        }
+
+        return $items;
+    }
+
+    public function is_league_allowed(int $league_id): bool
+    {
+        return in_array($league_id, $this->settings->selected_league_ids(), true);
     }
 }

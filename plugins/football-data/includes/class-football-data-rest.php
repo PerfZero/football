@@ -26,6 +26,12 @@ final class Football_Data_REST
             'callback' => [$this, 'mock'],
             'permission_callback' => '__return_true',
         ]);
+
+        register_rest_route('football-data/v1', '/api/leagues/selected', [
+            'methods' => WP_REST_Server::READABLE,
+            'callback' => [$this, 'selected_leagues'],
+            'permission_callback' => fn() => current_user_can('manage_options'),
+        ]);
     }
 
     public function status(): WP_REST_Response
@@ -34,6 +40,9 @@ final class Football_Data_REST
             'plugin' => 'Football Data',
             'version' => FOOTBALL_DATA_VERSION,
             'source' => $this->settings->is_mock_mode() ? 'mock' : 'api',
+            'apiKeyConfigured' => $this->settings->api_key_configured(),
+            'selectedLeagues' => $this->settings->selected_league_ids(),
+            'selectedLeaguesCount' => count($this->settings->selected_league_ids()),
             'mockTypes' => $this->mock->types(),
         ]);
     }
@@ -45,6 +54,22 @@ final class Football_Data_REST
         return rest_ensure_response([
             'type' => $type,
             'items' => $this->mock->all($type),
+        ]);
+    }
+
+    public function selected_leagues(WP_REST_Request $request): WP_REST_Response|WP_Error
+    {
+        $season = sanitize_text_field((string) ($request->get_param('season') ?: $this->settings->get()['default_season']));
+        $items = $this->api->selected_leagues($season);
+
+        if (is_wp_error($items)) {
+            return $items;
+        }
+
+        return rest_ensure_response([
+            'season' => $season,
+            'count' => count($items),
+            'items' => $items,
         ]);
     }
 }
