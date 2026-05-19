@@ -54,6 +54,33 @@ function football_league_team_url(mixed $api_id): string
 
     return $teams ? get_permalink((int) $teams[0]) : '';
 }
+
+function football_league_season_post(mixed $league_api_id, mixed $season): ?WP_Post
+{
+    $league_api_id = absint($league_api_id);
+    $season = sanitize_text_field((string) $season);
+    if (!$league_api_id || $season === '') {
+        return null;
+    }
+
+    $seasons = get_posts([
+        'post_type' => 'football_lg_season',
+        'post_status' => 'publish',
+        'posts_per_page' => 1,
+        'meta_query' => [
+            [
+                'key' => 'football_league_api_id',
+                'value' => (string) $league_api_id,
+            ],
+            [
+                'key' => 'football_season_year',
+                'value' => $season,
+            ],
+        ],
+    ]);
+
+    return $seasons[0] ?? null;
+}
 ?>
 
 <main id="main" class="league-page">
@@ -70,7 +97,8 @@ function football_league_team_url(mixed $api_id): string
         $season_end = football_league_meta('football_season_end');
         $season_current = football_league_meta('football_season_current');
         $type = football_league_meta('football_league_type');
-        $standings = football_league_meta('football_standings');
+        $league_season = football_league_season_post($api_id, $season);
+        $standings = $league_season ? get_post_meta($league_season->ID, 'football_standings', true) : football_league_meta('football_standings');
         $standings = is_array($standings) ? $standings : [];
 
         $teams = get_posts([

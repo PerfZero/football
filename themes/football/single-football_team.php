@@ -37,6 +37,18 @@ function football_team_league(mixed $league_api_id): ?WP_Post
     return $leagues[0] ?? null;
 }
 
+function football_team_post_by_id(mixed $post_id): ?WP_Post
+{
+    $post_id = absint($post_id);
+    if (!$post_id) {
+        return null;
+    }
+
+    $post = get_post($post_id);
+
+    return $post instanceof WP_Post ? $post : null;
+}
+
 function football_team_standing_row(?WP_Post $league, mixed $team_api_id): array
 {
     if (!$league || !$team_api_id) {
@@ -76,12 +88,16 @@ function football_team_standing_row(?WP_Post $league, mixed $team_api_id): array
         $city = football_team_meta('football_city');
         $stadium = football_team_meta('football_stadium');
         $founded = football_team_meta('football_founded');
-        $venue_address = football_team_meta('football_venue_address');
-        $venue_capacity = football_team_meta('football_venue_capacity');
-        $venue_surface = football_team_meta('football_venue_surface');
-        $venue_image = football_team_image_url(football_team_meta('football_venue_image'));
         $league_api_id = football_team_meta('football_league_api_id');
         $league = football_team_league($league_api_id);
+        $league_season = football_team_post_by_id(football_team_meta('football_lg_season_post_id'));
+        $venue = football_team_post_by_id(football_team_meta('football_venue_post_id'));
+        $venue_address = $venue ? get_post_meta($venue->ID, 'football_venue_address', true) : football_team_meta('football_venue_address');
+        $venue_capacity = $venue ? get_post_meta($venue->ID, 'football_venue_capacity', true) : football_team_meta('football_venue_capacity');
+        $venue_surface = $venue ? get_post_meta($venue->ID, 'football_venue_surface', true) : football_team_meta('football_venue_surface');
+        $venue_image = football_team_image_url($venue ? get_post_meta($venue->ID, 'football_venue_image', true) : football_team_meta('football_venue_image'));
+        $city = $venue ? get_post_meta($venue->ID, 'football_city', true) : $city;
+        $stadium = $venue ? get_the_title($venue) : $stadium;
         $standing = football_team_standing_row($league, $api_id);
 
         $fixtures = get_posts([
@@ -99,6 +115,14 @@ function football_team_standing_row(?WP_Post $league, mixed $team_api_id): array
                 ],
                 [
                     'relation' => 'OR',
+                    [
+                        'key' => 'football_home_team_post_id',
+                        'value' => (string) get_the_ID(),
+                    ],
+                    [
+                        'key' => 'football_away_team_post_id',
+                        'value' => (string) get_the_ID(),
+                    ],
                     [
                         'key' => 'football_home_team',
                         'value' => get_the_title(),
@@ -143,7 +167,16 @@ function football_team_standing_row(?WP_Post $league, mixed $team_api_id): array
                         <div><dt>Код</dt><dd><?php echo esc_html($code ?: '-'); ?></dd></div>
                         <div><dt>Сборная</dt><dd><?php echo esc_html($national ? 'Да' : 'Нет'); ?></dd></div>
                         <div><dt>Город</dt><dd><?php echo esc_html($city ?: '-'); ?></dd></div>
-                        <div><dt>Стадион</dt><dd><?php echo esc_html($stadium ?: '-'); ?></dd></div>
+                        <div>
+                            <dt>Стадион</dt>
+                            <dd>
+                                <?php if ($venue) : ?>
+                                    <a href="<?php echo esc_url(get_permalink($venue)); ?>"><?php echo esc_html(get_the_title($venue)); ?></a>
+                                <?php else : ?>
+                                    <?php echo esc_html($stadium ?: '-'); ?>
+                                <?php endif; ?>
+                            </dd>
+                        </div>
                         <div><dt>Год основания</dt><dd><?php echo esc_html($founded ?: '-'); ?></dd></div>
                         <div>
                             <dt>Турнир</dt>
@@ -154,6 +187,10 @@ function football_team_standing_row(?WP_Post $league, mixed $team_api_id): array
                                     <?php echo esc_html($league_api_id ?: '-'); ?>
                                 <?php endif; ?>
                             </dd>
+                        </div>
+                        <div>
+                            <dt>Сезон</dt>
+                            <dd><?php echo $league_season ? esc_html(get_the_title($league_season)) : '-'; ?></dd>
                         </div>
                     </dl>
 

@@ -41,6 +41,8 @@ final class Football_Data_Carbon_Fields
         }
 
         $this->register_league_fields();
+        $this->register_league_season_fields();
+        $this->register_venue_fields();
         $this->register_team_fields();
         $this->register_player_fields();
         $this->register_fixture_fields();
@@ -81,16 +83,56 @@ final class Football_Data_Carbon_Fields
                 Field::make('text', 'football_team_code', 'Код команды'),
                 Field::make('text', 'football_country', 'Страна'),
                 Field::make('checkbox', 'football_national_team', 'Национальная сборная'),
-                Field::make('text', 'football_city', 'Город'),
-                Field::make('text', 'football_stadium', 'Стадион'),
                 Field::make('text', 'football_founded', 'Год основания'),
-                Field::make('text', 'football_league_api_id', 'API ID основной лиги'),
-                Field::make('text', 'football_venue_api_id', 'API ID стадиона'),
-                Field::make('text', 'football_venue_address', 'Адрес стадиона'),
-                Field::make('text', 'football_venue_capacity', 'Вместимость стадиона'),
-                Field::make('text', 'football_venue_surface', 'Покрытие стадиона'),
-                Field::make('image', 'football_venue_image', 'Фото стадиона'),
+                Field::make('association', 'football_team_league', 'Турнир')
+                    ->set_max(1)
+                    ->set_types([
+                        ['type' => 'post', 'post_type' => 'football_league'],
+                    ]),
+                Field::make('association', 'football_team_league_season', 'Сезон турнира')
+                    ->set_max(1)
+                    ->set_types([
+                        ['type' => 'post', 'post_type' => 'football_lg_season'],
+                    ]),
+                Field::make('association', 'football_team_venue', 'Стадион')
+                    ->set_max(1)
+                    ->set_types([
+                        ['type' => 'post', 'post_type' => 'football_venue'],
+                    ]),
                 Field::make('textarea', 'football_short_description', 'Короткое описание'),
+            ]);
+    }
+
+    private function register_league_season_fields(): void
+    {
+        Container::make('post_meta', 'Данные сезона турнира')
+            ->where('post_type', '=', 'football_lg_season')
+            ->add_fields([
+                Field::make('text', 'football_api_id', 'API ID лиги'),
+                Field::make('association', 'football_season_league', 'Турнир')
+                    ->set_max(1)
+                    ->set_types([
+                        ['type' => 'post', 'post_type' => 'football_league'],
+                    ]),
+                Field::make('text', 'football_season_year', 'Сезон API'),
+                Field::make('text', 'football_season_start', 'Дата начала'),
+                Field::make('text', 'football_season_end', 'Дата окончания'),
+                Field::make('checkbox', 'football_season_current', 'Текущий сезон'),
+            ]);
+    }
+
+    private function register_venue_fields(): void
+    {
+        Container::make('post_meta', 'Данные стадиона')
+            ->where('post_type', '=', 'football_venue')
+            ->add_fields([
+                Field::make('text', 'football_api_id', 'API ID'),
+                Field::make('text', 'football_venue_address', 'Адрес'),
+                Field::make('text', 'football_city', 'Город'),
+                Field::make('text', 'football_country', 'Страна'),
+                Field::make('text', 'football_venue_capacity', 'Вместимость'),
+                Field::make('text', 'football_venue_surface', 'Покрытие'),
+                Field::make('image', 'football_venue_image', 'Фото стадиона'),
             ]);
     }
 
@@ -156,10 +198,35 @@ final class Football_Data_Carbon_Fields
             ->add_fields([
                 Field::make('text', 'football_api_id', 'API ID'),
                 Field::make('text', 'football_league_api_id', 'API ID лиги'),
+                Field::make('association', 'football_fixture_league', 'Турнир')
+                    ->set_max(1)
+                    ->set_types([
+                        ['type' => 'post', 'post_type' => 'football_league'],
+                    ]),
+                Field::make('association', 'football_fixture_league_season', 'Сезон турнира')
+                    ->set_max(1)
+                    ->set_types([
+                        ['type' => 'post', 'post_type' => 'football_lg_season'],
+                    ]),
                 Field::make('text', 'football_league_name', 'Турнир'),
                 Field::make('text', 'football_round', 'Тур/стадия'),
                 Field::make('date_time', 'football_match_datetime', 'Дата и время матча'),
-                Field::make('text', 'football_venue', 'Стадион'),
+                Field::make('association', 'football_fixture_venue', 'Стадион')
+                    ->set_max(1)
+                    ->set_types([
+                        ['type' => 'post', 'post_type' => 'football_venue'],
+                    ]),
+                Field::make('association', 'football_fixture_home_team', 'Команда хозяев')
+                    ->set_max(1)
+                    ->set_types([
+                        ['type' => 'post', 'post_type' => 'football_team'],
+                    ]),
+                Field::make('association', 'football_fixture_away_team', 'Команда гостей')
+                    ->set_max(1)
+                    ->set_types([
+                        ['type' => 'post', 'post_type' => 'football_team'],
+                    ]),
+                Field::make('text', 'football_venue', 'Стадион, текст из API'),
                 Field::make('text', 'football_status', 'Статус'),
                 Field::make('text', 'football_home_team', 'Домашняя команда'),
                 Field::make('text', 'football_away_team', 'Гостевая команда'),

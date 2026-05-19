@@ -109,7 +109,9 @@ final class Football_Data_Sync
             <table class="widefat striped" style="max-width: 900px;">
                 <tbody>
                 <tr><th>Турниры</th><td><?php echo esc_html(wp_count_posts('football_league')->publish ?? 0); ?></td></tr>
+                <tr><th>Сезоны турниров</th><td><?php echo esc_html(wp_count_posts('football_lg_season')->publish ?? 0); ?></td></tr>
                 <tr><th>Команды</th><td><?php echo esc_html(wp_count_posts('football_team')->publish ?? 0); ?></td></tr>
+                <tr><th>Стадионы</th><td><?php echo esc_html(wp_count_posts('football_venue')->publish ?? 0); ?></td></tr>
                 <tr><th>Матчи</th><td><?php echo esc_html(wp_count_posts('football_fixture')->publish ?? 0); ?></td></tr>
                 </tbody>
             </table>
@@ -153,6 +155,7 @@ final class Football_Data_Sync
 
             $this->assign_terms($post_id, 'football_country', $country['name'] ?? '');
             $this->assign_terms($post_id, 'football_season', $season);
+            $this->upsert_league_season($post_id, $api_id, $name, $item, $stats);
         }
 
         return $stats;
@@ -193,6 +196,15 @@ final class Football_Data_Sync
 
             update_post_meta($post_id, 'football_standings', $this->localize_standings_images($league['standings'] ?? []));
             update_post_meta($post_id, 'football_standings_payload', wp_json_encode($league, JSON_UNESCAPED_UNICODE));
+
+            $league_season_id = $this->find_league_season($league_id, $season);
+            if ($league_season_id) {
+                $standings = $this->localize_standings_images($league['standings'] ?? []);
+                update_post_meta($league_season_id, 'football_standings', $standings);
+                update_post_meta($league_season_id, 'football_standings_payload', wp_json_encode($league, JSON_UNESCAPED_UNICODE));
+                $this->update_carbon_meta($league_season_id, 'football_standings_payload', wp_json_encode($league, JSON_UNESCAPED_UNICODE));
+            }
+
             $this->assign_terms($post_id, 'football_season', $season);
         }
 
@@ -225,6 +237,10 @@ final class Football_Data_Sync
                     continue;
                 }
 
+                $league_post_id = $this->find_post_by_api_id('football_league', $league_id);
+                $league_season_id = $this->find_league_season($league_id, $season);
+                $venue_post_id = $this->upsert_venue($venue, $team['country'] ?? '', $stats);
+
                 $post_id = $this->upsert_post('football_team', $api_id, $name, '', [
                     'football_logo' => $this->sideload_image($team['logo'] ?? '', $name . ' logo'),
                     'football_team_code' => sanitize_text_field($team['code'] ?? ''),
@@ -234,6 +250,12 @@ final class Football_Data_Sync
                     'football_stadium' => sanitize_text_field($venue['name'] ?? ''),
                     'football_founded' => sanitize_text_field((string) ($team['founded'] ?? '')),
                     'football_league_api_id' => (string) $league_id,
+                    'football_league_post_id' => (string) $league_post_id,
+                    'football_lg_season_post_id' => (string) $league_season_id,
+                    'football_venue_post_id' => (string) $venue_post_id,
+                    'football_team_league' => $this->association_value('football_league', $league_post_id),
+                    'football_team_league_season' => $this->association_value('football_lg_season', $league_season_id),
+                    'football_team_venue' => $this->association_value('football_venue', $venue_post_id),
                     'football_venue_api_id' => sanitize_text_field((string) ($venue['id'] ?? '')),
                     'football_venue_address' => sanitize_text_field($venue['address'] ?? ''),
                     'football_venue_capacity' => sanitize_text_field((string) ($venue['capacity'] ?? '')),
@@ -281,8 +303,24 @@ final class Football_Data_Sync
                     continue;
                 }
 
+                $league_post_id = $this->find_post_by_api_id('football_league', $league_id);
+                $league_season_id = $this->find_league_season($league_id, $season);
+                $venue_post_id = $this->upsert_venue($fixture['venue'] ?? [], '', $stats);
+                $home_team_id = $this->find_post_by_api_id('football_team', absint($teams['home']['id'] ?? 0));
+                $away_team_id = $this->find_post_by_api_id('football_team', absint($teams['away']['id'] ?? 0));
+
                 $post_id = $this->upsert_post('football_fixture', $api_id, $home . ' - ' . $away, '', [
                     'football_league_api_id' => (string) $league_id,
+                    'football_league_post_id' => (string) $league_post_id,
+                    'football_lg_season_post_id' => (string) $league_season_id,
+                    'football_venue_post_id' => (string) $venue_post_id,
+                    'football_home_team_post_id' => (string) $home_team_id,
+                    'football_away_team_post_id' => (string) $away_team_id,
+                    'football_fixture_league' => $this->association_value('football_league', $league_post_id),
+                    'football_fixture_league_season' => $this->association_value('football_lg_season', $league_season_id),
+                    'football_fixture_venue' => $this->association_value('football_venue', $venue_post_id),
+                    'football_fixture_home_team' => $this->association_value('football_team', $home_team_id),
+                    'football_fixture_away_team' => $this->association_value('football_team', $away_team_id),
                     'football_league_name' => sanitize_text_field($league['name'] ?? ''),
                     'football_round' => sanitize_text_field($league['round'] ?? ''),
                     'football_match_datetime' => sanitize_text_field($fixture['date'] ?? ''),
@@ -355,6 +393,115 @@ final class Football_Data_Sync
         }
 
         carbon_set_post_meta($post_id, $key, $value);
+    }
+
+    private function upsert_league_season(int $league_post_id, int $league_api_id, string $league_name, array $item, array &$stats): int
+    {
+        $season = $this->default_season();
+        $season_post_id = $this->find_league_season($league_api_id, $season);
+        $title = sprintf('%s %s', $league_name, $season);
+        $season_start = sanitize_text_field($this->season_value($item, 'start'));
+        $season_end = sanitize_text_field($this->season_value($item, 'end'));
+
+        $post_data = [
+            'post_type' => 'football_lg_season',
+            'post_status' => 'publish',
+            'post_title' => $title,
+            'post_content' => '',
+        ];
+
+        if ($season_post_id) {
+            $post_data['ID'] = $season_post_id;
+            $season_post_id = wp_update_post($post_data, true);
+            $stats['updated']++;
+        } else {
+            $season_post_id = wp_insert_post($post_data, true);
+            $stats['created']++;
+        }
+
+        if (is_wp_error($season_post_id) || !$season_post_id) {
+            $stats['skipped']++;
+            return 0;
+        }
+
+        $meta = [
+            'football_api_id' => (string) $league_api_id,
+            'football_league_api_id' => (string) $league_api_id,
+            'football_league_post_id' => (string) $league_post_id,
+            'football_season_league' => $this->association_value('football_league', $league_post_id),
+            'football_season_year' => $season,
+            'football_season_start' => $season_start,
+            'football_season_end' => $season_end,
+            'football_season_current' => $this->season_value($item, 'current') ? '1' : '0',
+        ];
+
+        foreach ($meta as $key => $value) {
+            update_post_meta((int) $season_post_id, $key, $value);
+            $this->update_carbon_meta((int) $season_post_id, $key, $value);
+        }
+
+        $this->assign_terms((int) $season_post_id, 'football_season', $season);
+
+        return (int) $season_post_id;
+    }
+
+    private function upsert_venue(array $venue, string $country, array &$stats): int
+    {
+        $api_id = absint($venue['id'] ?? 0);
+        $name = sanitize_text_field($venue['name'] ?? '');
+        if (!$api_id || $name === '') {
+            return 0;
+        }
+
+        $post_id = $this->upsert_post('football_venue', $api_id, $name, '', [
+            'football_venue_address' => sanitize_text_field($venue['address'] ?? ''),
+            'football_city' => sanitize_text_field($venue['city'] ?? ''),
+            'football_country' => sanitize_text_field($venue['country'] ?? $country),
+            'football_venue_capacity' => sanitize_text_field((string) ($venue['capacity'] ?? '')),
+            'football_venue_surface' => sanitize_text_field($venue['surface'] ?? ''),
+            'football_venue_image' => $this->sideload_image($venue['image'] ?? '', $name . ' image'),
+        ], $stats);
+
+        $this->assign_terms($post_id, 'football_country', $venue['country'] ?? $country);
+
+        return $post_id;
+    }
+
+    private function find_league_season(int $league_api_id, string $season): int
+    {
+        $existing = get_posts([
+            'post_type' => 'football_lg_season',
+            'post_status' => 'any',
+            'fields' => 'ids',
+            'posts_per_page' => 1,
+            'meta_query' => [
+                [
+                    'key' => 'football_league_api_id',
+                    'value' => (string) $league_api_id,
+                ],
+                [
+                    'key' => 'football_season_year',
+                    'value' => $season,
+                ],
+            ],
+        ]);
+
+        return $existing ? (int) $existing[0] : 0;
+    }
+
+    private function association_value(string $post_type, int $post_id): array
+    {
+        if (!$post_id) {
+            return [];
+        }
+
+        return [
+            [
+                'type' => 'post',
+                'subtype' => $post_type,
+                'id' => $post_id,
+            ],
+        ];
     }
 
     private function find_post_by_api_id(string $post_type, int $api_id): int

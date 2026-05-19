@@ -189,7 +189,9 @@ final class Football_Data_Settings
             <h2>Сущности</h2>
             <ul>
                 <li>Турниры: <code>football_league</code></li>
+                <li>Сезоны турниров: <code>football_lg_season</code></li>
                 <li>Команды: <code>football_team</code></li>
+                <li>Стадионы: <code>football_venue</code></li>
                 <li>Игроки: <code>football_player</code></li>
                 <li>Матчи: <code>football_fixture</code></li>
                 <li>Букмекеры: <code>football_bookmaker</code></li>

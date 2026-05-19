@@ -8,7 +8,9 @@ final class Football_Data_CPT
 {
     private const POST_TYPES = [
         'football_league',
+        'football_lg_season',
         'football_team',
+        'football_venue',
         'football_player',
         'football_fixture',
         'football_bookmaker',
@@ -41,7 +43,9 @@ final class Football_Data_CPT
     private function register_post_types(): void
     {
         $this->post_type('football_league', 'Турниры', 'Турнир', 'leagues', 'dashicons-awards');
+        $this->post_type('football_lg_season', 'Сезоны турниров', 'Сезон турнира', 'league-seasons', 'dashicons-calendar');
         $this->post_type('football_team', 'Команды', 'Команда', 'teams', 'dashicons-groups');
+        $this->post_type('football_venue', 'Стадионы', 'Стадион', 'venues', 'dashicons-location-alt');
         $this->post_type('football_player', 'Игроки', 'Игрок', 'players', 'dashicons-id');
         $this->post_type('football_fixture', 'Матчи', 'Матч', 'matches', 'dashicons-calendar-alt');
         $this->post_type('football_bookmaker', 'Букмекеры', 'Букмекер', 'bookmakers', 'dashicons-star-filled');
@@ -74,8 +78,8 @@ final class Football_Data_CPT
 
     private function register_taxonomies(): void
     {
-        $this->taxonomy('football_country', 'Страны', 'Страна', ['football_league', 'football_team', 'football_player', 'football_bookmaker'], 'countries');
-        $this->taxonomy('football_season', 'Сезоны', 'Сезон', ['football_league', 'football_fixture', 'football_player'], 'seasons');
+        $this->taxonomy('football_country', 'Страны', 'Страна', ['football_league', 'football_team', 'football_venue', 'football_player', 'football_bookmaker'], 'countries');
+        $this->taxonomy('football_season', 'Сезоны', 'Сезон', ['football_league', 'football_lg_season', 'football_fixture', 'football_player'], 'seasons');
         $this->taxonomy('football_position', 'Позиции', 'Позиция', ['football_player'], 'positions');
         $this->taxonomy('football_news_topic', 'Темы новостей', 'Тема новости', ['post'], 'football-topics');
         $this->taxonomy('football_bookmaker_feature', 'Особенности букмекеров', 'Особенность', ['football_bookmaker'], 'bookmaker-features');
