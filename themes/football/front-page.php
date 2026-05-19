@@ -71,6 +71,15 @@ function football_home_format_date(string $value): string
     }
 }
 
+function football_home_match_score(string $home_score, string $away_score): string
+{
+    if ($home_score !== '' || $away_score !== '') {
+        return ($home_score !== '' ? $home_score : '-') . ':' . ($away_score !== '' ? $away_score : '-');
+    }
+
+    return 'vs';
+}
+
 $leagues = get_posts([
     'post_type' => 'football_league',
     'post_status' => 'publish',
@@ -87,12 +96,16 @@ $teams = get_posts([
     'order' => 'DESC',
 ]);
 
+$fixtures = get_posts([
+    'post_type' => 'football_fixture',
+    'post_status' => 'publish',
+    'posts_per_page' => 6,
+    'orderby' => 'meta_value',
+    'order' => 'DESC',
+    'meta_key' => 'football_match_datetime',
+]);
+
 $compact_sections = [
-    [
-        'title' => football_t('section.fixtures'),
-        'post_type' => 'football_fixture',
-        'archive_label' => football_t('archive.fixtures'),
-    ],
     [
         'title' => football_t('section.players'),
         'post_type' => 'football_player',
@@ -237,6 +250,92 @@ $compact_sections = [
                             <div>
                                 <dt><?php football_esc_html_t('home.founded'); ?></dt>
                                 <dd><?php echo esc_html($founded ?: football_t('home.not_set')); ?></dd>
+                            </div>
+                        </dl>
+                    </article>
+                <?php endforeach; ?>
+            </div>
+        <?php else : ?>
+            <p class="home-empty"><?php football_esc_html_t('site.no_posts'); ?></p>
+        <?php endif; ?>
+    </section>
+
+    <section class="container home-featured">
+        <header class="home-section-heading">
+            <h2><?php football_esc_html_t('home.featured_matches'); ?></h2>
+        </header>
+
+        <?php if ($fixtures) : ?>
+            <div class="home-match-grid">
+                <?php foreach ($fixtures as $fixture) : ?>
+                    <?php
+                    $fixture_id = $fixture->ID;
+                    $league = football_home_linked_post(football_home_meta($fixture_id, 'football_league_post_id'));
+                    $venue = football_home_linked_post(football_home_meta($fixture_id, 'football_venue_post_id'));
+                    $home_team = football_home_linked_post(football_home_meta($fixture_id, 'football_home_team_post_id'));
+                    $away_team = football_home_linked_post(football_home_meta($fixture_id, 'football_away_team_post_id'));
+                    $home_name = football_home_meta($fixture_id, 'football_home_team');
+                    $away_name = football_home_meta($fixture_id, 'football_away_team');
+                    $home_logo = $home_team ? football_home_image_url(football_home_meta($home_team->ID, 'football_logo')) : '';
+                    $away_logo = $away_team ? football_home_image_url(football_home_meta($away_team->ID, 'football_logo')) : '';
+                    $date = football_home_meta($fixture_id, 'football_match_datetime');
+                    $round = football_home_meta($fixture_id, 'football_round');
+                    $status = football_home_meta($fixture_id, 'football_status');
+                    $home_score = (string) football_home_meta($fixture_id, 'football_home_score');
+                    $away_score = (string) football_home_meta($fixture_id, 'football_away_score');
+                    ?>
+                    <article class="home-match-card">
+                        <div class="home-match-card__meta">
+                            <span><?php echo esc_html(football_home_format_date($date)); ?></span>
+                            <span><?php echo esc_html($league ? get_the_title($league) : football_home_meta($fixture_id, 'football_league_name')); ?></span>
+                        </div>
+
+                        <div class="home-match-card__teams">
+                            <div class="home-match-team">
+                                <?php if ($home_logo) : ?>
+                                    <img src="<?php echo esc_url($home_logo); ?>" alt="">
+                                <?php endif; ?>
+                                <?php if ($home_team) : ?>
+                                    <a href="<?php echo esc_url(get_permalink($home_team)); ?>"><?php echo esc_html(get_the_title($home_team)); ?></a>
+                                <?php else : ?>
+                                    <span><?php echo esc_html($home_name); ?></span>
+                                <?php endif; ?>
+                            </div>
+
+                            <a class="home-match-score" href="<?php echo esc_url(get_permalink($fixture)); ?>">
+                                <?php echo esc_html(football_home_match_score($home_score, $away_score)); ?>
+                            </a>
+
+                            <div class="home-match-team">
+                                <?php if ($away_logo) : ?>
+                                    <img src="<?php echo esc_url($away_logo); ?>" alt="">
+                                <?php endif; ?>
+                                <?php if ($away_team) : ?>
+                                    <a href="<?php echo esc_url(get_permalink($away_team)); ?>"><?php echo esc_html(get_the_title($away_team)); ?></a>
+                                <?php else : ?>
+                                    <span><?php echo esc_html($away_name); ?></span>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+
+                        <dl class="home-match-card__facts">
+                            <div>
+                                <dt><?php football_esc_html_t('home.round'); ?></dt>
+                                <dd><?php echo esc_html($round ?: football_t('home.not_set')); ?></dd>
+                            </div>
+                            <div>
+                                <dt><?php football_esc_html_t('home.status'); ?></dt>
+                                <dd><?php echo esc_html($status ?: football_t('home.not_set')); ?></dd>
+                            </div>
+                            <div>
+                                <dt><?php football_esc_html_t('home.stadium'); ?></dt>
+                                <dd>
+                                    <?php if ($venue) : ?>
+                                        <a href="<?php echo esc_url(get_permalink($venue)); ?>"><?php echo esc_html(get_the_title($venue)); ?></a>
+                                    <?php else : ?>
+                                        <?php echo esc_html(football_home_meta($fixture_id, 'football_venue') ?: football_t('home.not_set')); ?>
+                                    <?php endif; ?>
+                                </dd>
                             </div>
                         </dl>
                     </article>
