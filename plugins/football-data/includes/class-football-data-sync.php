@@ -227,11 +227,18 @@ final class Football_Data_Sync
 
                 $post_id = $this->upsert_post('football_team', $api_id, $name, '', [
                     'football_logo' => $this->sideload_image($team['logo'] ?? '', $name . ' logo'),
+                    'football_team_code' => sanitize_text_field($team['code'] ?? ''),
                     'football_country' => sanitize_text_field($team['country'] ?? ''),
+                    'football_national_team' => !empty($team['national']) ? '1' : '0',
                     'football_city' => sanitize_text_field($venue['city'] ?? ''),
                     'football_stadium' => sanitize_text_field($venue['name'] ?? ''),
                     'football_founded' => sanitize_text_field((string) ($team['founded'] ?? '')),
                     'football_league_api_id' => (string) $league_id,
+                    'football_venue_api_id' => sanitize_text_field((string) ($venue['id'] ?? '')),
+                    'football_venue_address' => sanitize_text_field($venue['address'] ?? ''),
+                    'football_venue_capacity' => sanitize_text_field((string) ($venue['capacity'] ?? '')),
+                    'football_venue_surface' => sanitize_text_field($venue['surface'] ?? ''),
+                    'football_venue_image' => $this->sideload_image($venue['image'] ?? '', ($venue['name'] ?? $name . ' stadium') . ' image'),
                 ], $stats);
 
                 $this->assign_terms($post_id, 'football_country', $team['country'] ?? '');

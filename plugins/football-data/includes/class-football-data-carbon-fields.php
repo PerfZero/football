@@ -78,11 +78,18 @@ final class Football_Data_Carbon_Fields
             ->add_fields([
                 Field::make('text', 'football_api_id', 'API ID'),
                 Field::make('image', 'football_logo', 'Логотип'),
+                Field::make('text', 'football_team_code', 'Код команды'),
                 Field::make('text', 'football_country', 'Страна'),
+                Field::make('checkbox', 'football_national_team', 'Национальная сборная'),
                 Field::make('text', 'football_city', 'Город'),
                 Field::make('text', 'football_stadium', 'Стадион'),
                 Field::make('text', 'football_founded', 'Год основания'),
                 Field::make('text', 'football_league_api_id', 'API ID основной лиги'),
+                Field::make('text', 'football_venue_api_id', 'API ID стадиона'),
+                Field::make('text', 'football_venue_address', 'Адрес стадиона'),
+                Field::make('text', 'football_venue_capacity', 'Вместимость стадиона'),
+                Field::make('text', 'football_venue_surface', 'Покрытие стадиона'),
+                Field::make('image', 'football_venue_image', 'Фото стадиона'),
                 Field::make('textarea', 'football_short_description', 'Короткое описание'),
             ]);
     }
