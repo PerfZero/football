@@ -50,6 +50,9 @@ final class Football_Data_Plugin
         add_action('carbon_fields_register_fields', [$this->carbon_fields, 'register_fields']);
         add_action('admin_notices', [$this->carbon_fields, 'admin_notice']);
         add_action('init', [$this->i18n, 'register_strings']);
+        add_action('admin_head-edit.php', [$this->cpt, 'admin_list_styles']);
+        add_filter('manage_football_venue_posts_columns', [$this->cpt, 'venue_columns']);
+        add_action('manage_football_venue_posts_custom_column', [$this->cpt, 'render_venue_column'], 10, 2);
         add_filter('pll_get_post_types', [$this->cpt, 'polylang_post_types'], 10, 2);
         add_filter('pll_get_taxonomies', [$this->cpt, 'polylang_taxonomies'], 10, 2);
     }

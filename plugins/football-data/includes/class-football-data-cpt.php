@@ -40,6 +40,59 @@ final class Football_Data_CPT
         return array_values(array_unique(array_merge($taxonomies, self::TAXONOMIES)));
     }
 
+    public function venue_columns(array $columns): array
+    {
+        $new_columns = [];
+
+        foreach ($columns as $key => $label) {
+            if ($key === 'title') {
+                $new_columns['football_venue_image'] = 'Фото';
+            }
+
+            $new_columns[$key] = $label;
+        }
+
+        return $new_columns;
+    }
+
+    public function render_venue_column(string $column, int $post_id): void
+    {
+        if ($column !== 'football_venue_image') {
+            return;
+        }
+
+        $image = $this->venue_image_url($post_id);
+        if ($image === '') {
+            echo '<span class="football-data-admin-thumb football-data-admin-thumb--empty">-</span>';
+            return;
+        }
+
+        echo '<img class="football-data-admin-thumb" src="' . esc_url($image) . '" alt="">';
+    }
+
+    public function admin_list_styles(): void
+    {
+        $screen = get_current_screen();
+        if (!$screen || $screen->post_type !== 'football_venue') {
+            return;
+        }
+
+        echo '<style>
+            .column-football_venue_image { width: 92px; }
+            .football-data-admin-thumb {
+                width: 72px;
+                height: 48px;
+                border-radius: 4px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                object-fit: cover;
+                background: #f0f0f1;
+                color: #646970;
+            }
+        </style>';
+    }
+
     private function register_post_types(): void
     {
         $this->post_type('football_league', 'Турниры', 'Турнир', 'leagues', 'dashicons-awards');
@@ -74,6 +127,38 @@ final class Football_Data_CPT
             'has_archive' => true,
             'rewrite' => ['slug' => $slug],
         ]);
+    }
+
+    private function venue_image_url(int $post_id): string
+    {
+        $image = get_post_meta($post_id, 'football_venue_image', true);
+        if (!$image) {
+            $image = $this->venue_fallback_team_image($post_id);
+        }
+
+        if (is_numeric($image)) {
+            return wp_get_attachment_image_url((int) $image, 'thumbnail') ?: '';
+        }
+
+        return esc_url_raw((string) $image);
+    }
+
+    private function venue_fallback_team_image(int $venue_id): mixed
+    {
+        $teams = get_posts([
+            'post_type' => 'football_team',
+            'post_status' => 'publish',
+            'posts_per_page' => 1,
+            'fields' => 'ids',
+            'meta_key' => 'football_venue_post_id',
+            'meta_value' => (string) $venue_id,
+        ]);
+
+        if (!$teams) {
+            return '';
+        }
+
+        return get_post_meta((int) $teams[0], 'football_venue_image', true);
     }
 
     private function register_taxonomies(): void
