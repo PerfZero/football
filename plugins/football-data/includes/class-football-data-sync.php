@@ -339,11 +339,22 @@ final class Football_Data_Sync
         }
 
         update_post_meta($post_id, 'football_api_id', (string) $api_id);
+        $this->update_carbon_meta($post_id, 'football_api_id', (string) $api_id);
         foreach ($meta as $key => $value) {
             update_post_meta($post_id, $key, $value);
+            $this->update_carbon_meta($post_id, $key, $value);
         }
 
         return (int) $post_id;
+    }
+
+    private function update_carbon_meta(int $post_id, string $key, mixed $value): void
+    {
+        if (!function_exists('carbon_set_post_meta')) {
+            return;
+        }
+
+        carbon_set_post_meta($post_id, $key, $value);
     }
 
     private function find_post_by_api_id(string $post_type, int $api_id): int
