@@ -52,6 +52,7 @@ add_filter('excerpt_more', 'football_excerpt_more');
 function football_string_translations(): array
 {
     return [
+        'home' => 'Главная',
         'site.section.football' => 'Футбол',
         'site.home.subtitle' => 'Новости, матчи, игроки, турниры и букмекеры в одном месте.',
         'site.archive' => 'Архив',
@@ -78,6 +79,12 @@ function football_string_translations(): array
         'home.review' => 'Обзор',
         'home.go_to_bookmaker' => 'Перейти',
         'home.not_set' => 'Не указано',
+        'bookmaker.page_label' => 'Букмекер',
+        'bookmaker.summary' => 'Краткий обзор',
+        'bookmaker.features' => 'Особенности',
+        'bookmaker.terms' => 'Условия',
+        'bookmaker.open_site' => 'Перейти на сайт',
+        'bookmaker.no_features' => 'Особенности пока не заполнены.',
         'site.back_home' => 'На главную',
         'site.skip_to_content' => 'Перейти к содержимому',
         'site.primary_navigation' => 'Основная навигация',
