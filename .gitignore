@@ -1,0 +1,10 @@
+.DS_Store
+.env
+*.log
+tmp/
+
+# Local WordPress/database data is stored inside Docker volumes.
+wp-content/uploads/
+
+# Composer dependencies are restored from composer.lock.
+plugins/football-data/vendor/

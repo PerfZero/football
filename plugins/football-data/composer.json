@@ -1,0 +1,9 @@
+{
+    "name": "football/football-data",
+    "description": "WordPress plugin for Football project data, API-Football integration and Carbon Fields meta boxes.",
+    "type": "wordpress-plugin",
+    "license": "proprietary",
+    "require": {
+        "htmlburger/carbon-fields": "^3.6"
+    }
+}

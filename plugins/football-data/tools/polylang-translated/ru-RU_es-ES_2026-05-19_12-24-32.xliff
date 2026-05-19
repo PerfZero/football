@@ -1,0 +1,619 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:2.0" version="2.1" srcLang="ru-RU" trgLang="es-ES">
+  <file id="1" original="Polylang|3.8.3|http://localhost:8080" canResegment="no">
+    <group id="1" type="x:strings-translations">
+      <unit id="1" type="x:string_translation">
+        <notes>
+          <note><![CDATA[WordPress, blogname]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[Football]]></source>
+          <target><![CDATA[Fútbol]]></target>
+        </segment>
+      </unit>
+      <unit id="2" type="x:string_translation">
+        <notes>
+          <note><![CDATA[WordPress, date_format]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[F j, Y]]></source>
+          <target><![CDATA[j \d\e F \d\e Y]]></target>
+        </segment>
+      </unit>
+      <unit id="3" type="x:string_translation">
+        <notes>
+          <note><![CDATA[WordPress, time_format]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[g:i a]]></source>
+          <target><![CDATA[H:i]]></target>
+        </segment>
+      </unit>
+      <unit id="4" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football Data, football_data_plugin_name]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[Football Data]]></source>
+          <target><![CDATA[Datos de fútbol]]></target>
+        </segment>
+      </unit>
+      <unit id="5" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football Data, football_data_mock_mode_status]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[мок-режим включен, данные берутся из локального JSON.]]></source>
+          <target><![CDATA[modo mock activado; los datos se cargan desde el JSON local.]]></target>
+        </segment>
+      </unit>
+      <unit id="6" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football Data, football_data_carbon_missing]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[Carbon Fields не найден. Запустите установку Composer в папке плагина.]]></source>
+          <target><![CDATA[No se encontró Carbon Fields. Ejecuta Composer install en la carpeta del plugin.]]></target>
+        </segment>
+      </unit>
+      <unit id="7" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football Data, football_data_settings_api_title]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[Настройки API-Football]]></source>
+          <target><![CDATA[Ajustes de API-Football]]></target>
+        </segment>
+      </unit>
+      <unit id="8" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football Data, football_data_settings_save]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[Сохранить настройки]]></source>
+          <target><![CDATA[Guardar ajustes]]></target>
+        </segment>
+      </unit>
+      <unit id="9" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football theme, football_section.leagues]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[Турниры]]></source>
+          <target><![CDATA[Competiciones]]></target>
+        </segment>
+      </unit>
+      <unit id="10" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football theme, football_section.teams]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[Команды]]></source>
+          <target><![CDATA[Equipos]]></target>
+        </segment>
+      </unit>
+      <unit id="11" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football theme, football_section.players]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[Игроки]]></source>
+          <target><![CDATA[Jugadores]]></target>
+        </segment>
+      </unit>
+      <unit id="12" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football theme, football_player.matches]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[Матчи]]></source>
+          <target><![CDATA[Partidos]]></target>
+        </segment>
+      </unit>
+      <unit id="13" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football theme, football_section.bookmakers]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[Букмекеры]]></source>
+          <target><![CDATA[Casas de apuestas]]></target>
+        </segment>
+      </unit>
+      <unit id="14" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football theme, football_site.section.football]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[Футбол]]></source>
+          <target><![CDATA[Fútbol]]></target>
+        </segment>
+      </unit>
+      <unit id="15" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football theme, football_site.home.subtitle]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[Новости, матчи, игроки, турниры и букмекеры в одном месте.]]></source>
+          <target><![CDATA[Noticias, partidos, jugadores, competiciones y casas de apuestas en un solo lugar.]]></target>
+        </segment>
+      </unit>
+      <unit id="16" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football theme, football_site.quick_links]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[Быстрые ссылки]]></source>
+          <target><![CDATA[Enlaces rápidos]]></target>
+        </segment>
+      </unit>
+      <unit id="17" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football theme, football_site.archive]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[Архив]]></source>
+          <target><![CDATA[Archivo]]></target>
+        </segment>
+      </unit>
+      <unit id="18" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football theme, football_site.no_posts]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[Пока нет записей.]]></source>
+          <target><![CDATA[Todavía no hay entradas.]]></target>
+        </segment>
+      </unit>
+      <unit id="19" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football theme, football_site.back_home]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[На главную]]></source>
+          <target><![CDATA[Inicio]]></target>
+        </segment>
+      </unit>
+      <unit id="20" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football theme, football_site.skip_to_content]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[Перейти к содержимому]]></source>
+          <target><![CDATA[Saltar al contenido]]></target>
+        </segment>
+      </unit>
+      <unit id="21" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football theme, football_site.primary_navigation]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[Основная навигация]]></source>
+          <target><![CDATA[Navegación principal]]></target>
+        </segment>
+      </unit>
+      <unit id="22" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football theme, football_site.language_switcher]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[Переключатель языка]]></source>
+          <target><![CDATA[Selector de idioma]]></target>
+        </segment>
+      </unit>
+      <unit id="23" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football theme, football_section.news]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[Новости]]></source>
+          <target><![CDATA[Noticias]]></target>
+        </segment>
+      </unit>
+      <unit id="24" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football theme, football_archive.leagues]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[Все турниры]]></source>
+          <target><![CDATA[Todas las competiciones]]></target>
+        </segment>
+      </unit>
+      <unit id="25" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football theme, football_archive.teams]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[Все команды]]></source>
+          <target><![CDATA[Todos los equipos]]></target>
+        </segment>
+      </unit>
+      <unit id="26" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football theme, football_archive.players]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[Все игроки]]></source>
+          <target><![CDATA[Todos los jugadores]]></target>
+        </segment>
+      </unit>
+      <unit id="27" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football theme, football_archive.fixtures]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[Все матчи]]></source>
+          <target><![CDATA[Todos los partidos]]></target>
+        </segment>
+      </unit>
+      <unit id="28" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football theme, football_archive.bookmakers]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[Все букмекеры]]></source>
+          <target><![CDATA[Todas las casas de apuestas]]></target>
+        </segment>
+      </unit>
+      <unit id="29" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football theme, football_archive.news]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[Все новости]]></source>
+          <target><![CDATA[Todas las noticias]]></target>
+        </segment>
+      </unit>
+      <unit id="30" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football theme, football_player.birth_date]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[Дата рождения]]></source>
+          <target><![CDATA[Fecha de nacimiento]]></target>
+        </segment>
+      </unit>
+      <unit id="31" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football theme, football_player.birth_place]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[Место рождения]]></source>
+          <target><![CDATA[Lugar de nacimiento]]></target>
+        </segment>
+      </unit>
+      <unit id="32" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football theme, football_player.nationality]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[Гражданство]]></source>
+          <target><![CDATA[Nacionalidad]]></target>
+        </segment>
+      </unit>
+      <unit id="33" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football theme, football_player.height]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[Рост]]></source>
+          <target><![CDATA[Altura]]></target>
+        </segment>
+      </unit>
+      <unit id="34" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football theme, football_player.weight]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[Вес]]></source>
+          <target><![CDATA[Peso]]></target>
+        </segment>
+      </unit>
+      <unit id="35" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football theme, football_player.average_rating]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[Средняя оценка]]></source>
+          <target><![CDATA[Calificación media]]></target>
+        </segment>
+      </unit>
+      <unit id="36" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football theme, football_player.about]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[О себе]]></source>
+          <target><![CDATA[Acerca de]]></target>
+        </segment>
+      </unit>
+      <unit id="37" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football theme, football_player.goals]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[Голы]]></source>
+          <target><![CDATA[Goles]]></target>
+        </segment>
+      </unit>
+      <unit id="38" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football theme, football_player.assists]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[Передачи]]></source>
+          <target><![CDATA[Asistencias]]></target>
+        </segment>
+      </unit>
+      <unit id="39" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football theme, football_player.characteristics]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[Характеристики]]></source>
+          <target><![CDATA[Características]]></target>
+        </segment>
+      </unit>
+      <unit id="40" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football theme, football_player.positions]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[Позиции на поле]]></source>
+          <target><![CDATA[Posiciones en el campo]]></target>
+        </segment>
+      </unit>
+      <unit id="41" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football theme, football_player.main_position]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[Основная позиция:]]></source>
+          <target><![CDATA[Posición principal:]]></target>
+        </segment>
+      </unit>
+      <unit id="42" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football theme, football_player.additional_positions]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[Дополнительные позиции: второй нападающий, левый нападающий.]]></source>
+          <target><![CDATA[Posiciones adicionales: segundo delantero, extremo izquierdo.]]></target>
+        </segment>
+      </unit>
+      <unit id="43" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football theme, football_player.season_stats]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[Статистика за сезон]]></source>
+          <target><![CDATA[Estadísticas de la temporada]]></target>
+        </segment>
+      </unit>
+      <unit id="44" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football theme, football_player.league]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[Турнир]]></source>
+          <target><![CDATA[Competición]]></target>
+        </segment>
+      </unit>
+      <unit id="45" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football theme, football_player.assists_short]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[ГП]]></source>
+          <target><![CDATA[Asist.]]></target>
+        </segment>
+      </unit>
+      <unit id="46" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football theme, football_player.yellow_cards_short]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[ЖК]]></source>
+          <target><![CDATA[TA]]></target>
+        </segment>
+      </unit>
+      <unit id="47" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football theme, football_player.red_cards_short]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[КК]]></source>
+          <target><![CDATA[TR]]></target>
+        </segment>
+      </unit>
+      <unit id="48" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football theme, football_player.minutes]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[Минуты]]></source>
+          <target><![CDATA[Minutos]]></target>
+        </segment>
+      </unit>
+      <unit id="49" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football theme, football_player.career]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[Карьера]]></source>
+          <target><![CDATA[Carrera]]></target>
+        </segment>
+      </unit>
+      <unit id="50" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football theme, football_player.period]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[Период]]></source>
+          <target><![CDATA[Periodo]]></target>
+        </segment>
+      </unit>
+      <unit id="51" type="x:string_translation">
+        <notes>
+          <note><![CDATA[Football theme, football_player.team]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[Команда]]></source>
+          <target><![CDATA[Equipo]]></target>
+        </segment>
+      </unit>
+      <unit id="52" type="x:string_translation">
+        <notes>
+          <note><![CDATA[URL slugs, slug_football_league]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[leagues]]></source>
+          <target><![CDATA[ligas]]></target>
+        </segment>
+      </unit>
+      <unit id="53" type="x:string_translation">
+        <notes>
+          <note><![CDATA[URL slugs, slug_football_team]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[teams]]></source>
+          <target><![CDATA[equipos]]></target>
+        </segment>
+      </unit>
+      <unit id="54" type="x:string_translation">
+        <notes>
+          <note><![CDATA[URL slugs, slug_football_player]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[players]]></source>
+          <target><![CDATA[jugadores]]></target>
+        </segment>
+      </unit>
+      <unit id="55" type="x:string_translation">
+        <notes>
+          <note><![CDATA[URL slugs, slug_football_fixture]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[matches]]></source>
+          <target><![CDATA[partidos]]></target>
+        </segment>
+      </unit>
+      <unit id="56" type="x:string_translation">
+        <notes>
+          <note><![CDATA[URL slugs, slug_football_bookmaker]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[bookmakers]]></source>
+          <target><![CDATA[casas-apuestas]]></target>
+        </segment>
+      </unit>
+      <unit id="57" type="x:string_translation">
+        <notes>
+          <note><![CDATA[URL slugs, slug_category]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[category]]></source>
+          <target><![CDATA[categoria]]></target>
+        </segment>
+      </unit>
+      <unit id="58" type="x:string_translation">
+        <notes>
+          <note><![CDATA[URL slugs, slug_post_tag]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[tag]]></source>
+          <target><![CDATA[etiqueta]]></target>
+        </segment>
+      </unit>
+      <unit id="59" type="x:string_translation">
+        <notes>
+          <note><![CDATA[URL slugs, slug_post_format]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[type]]></source>
+          <target><![CDATA[tipo]]></target>
+        </segment>
+      </unit>
+      <unit id="60" type="x:string_translation">
+        <notes>
+          <note><![CDATA[URL slugs, slug_football_country]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[countries]]></source>
+          <target><![CDATA[paises]]></target>
+        </segment>
+      </unit>
+      <unit id="61" type="x:string_translation">
+        <notes>
+          <note><![CDATA[URL slugs, slug_football_season]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[seasons]]></source>
+          <target><![CDATA[temporadas]]></target>
+        </segment>
+      </unit>
+      <unit id="62" type="x:string_translation">
+        <notes>
+          <note><![CDATA[URL slugs, slug_football_position]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[positions]]></source>
+          <target><![CDATA[posiciones]]></target>
+        </segment>
+      </unit>
+      <unit id="63" type="x:string_translation">
+        <notes>
+          <note><![CDATA[URL slugs, slug_football_news_topic]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[football-topics]]></source>
+          <target><![CDATA[temas-futbol]]></target>
+        </segment>
+      </unit>
+      <unit id="64" type="x:string_translation">
+        <notes>
+          <note><![CDATA[URL slugs, slug_football_bookmaker_feature]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[bookmaker-features]]></source>
+          <target><![CDATA[caracteristicas-casas-apuestas]]></target>
+        </segment>
+      </unit>
+      <unit id="65" type="x:string_translation">
+        <notes>
+          <note><![CDATA[URL slugs, slug_author]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[author]]></source>
+          <target><![CDATA[autor]]></target>
+        </segment>
+      </unit>
+      <unit id="66" type="x:string_translation">
+        <notes>
+          <note><![CDATA[URL slugs, slug_search]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[search]]></source>
+          <target><![CDATA[buscar]]></target>
+        </segment>
+      </unit>
+      <unit id="67" type="x:string_translation">
+        <notes>
+          <note><![CDATA[URL slugs, slug_attachment]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[attachment]]></source>
+          <target><![CDATA[adjunto]]></target>
+        </segment>
+      </unit>
+      <unit id="68" type="x:string_translation">
+        <notes>
+          <note><![CDATA[URL slugs, slug_paged]]></note>
+        </notes>
+        <segment>
+          <source><![CDATA[page]]></source>
+          <target><![CDATA[pagina]]></target>
+        </segment>
+      </unit>
+    </group>
+  </file>
+</xliff>
