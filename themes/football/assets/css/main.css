@@ -753,6 +753,13 @@ img {
     align-items: center;
     gap: 8px;
     font-weight: 800;
+    text-decoration: none;
+}
+
+a.league-team-cell:hover,
+a.league-team-cell:focus {
+    color: var(--color-field-dark);
+    text-decoration: underline;
 }
 
 .league-team-cell img {

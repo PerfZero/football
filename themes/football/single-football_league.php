@@ -35,6 +35,25 @@ function football_league_bool_label(mixed $value): string
 {
     return $value ? 'Да' : 'Нет';
 }
+
+function football_league_team_url(mixed $api_id): string
+{
+    $api_id = absint($api_id);
+    if (!$api_id) {
+        return '';
+    }
+
+    $teams = get_posts([
+        'post_type' => 'football_team',
+        'post_status' => 'publish',
+        'fields' => 'ids',
+        'posts_per_page' => 1,
+        'meta_key' => 'football_api_id',
+        'meta_value' => (string) $api_id,
+    ]);
+
+    return $teams ? get_permalink((int) $teams[0]) : '';
+}
 ?>
 
 <main id="main" class="league-page">
@@ -151,13 +170,17 @@ function football_league_bool_label(mixed $value): string
                                         <tr>
                                             <td><?php echo esc_html($row['rank'] ?? ''); ?></td>
                                             <td>
-                                                <span class="league-team-cell">
+                                                <?php
+                                                $team_name = $row['team']['name'] ?? '';
+                                                $team_url = football_league_team_url($row['team']['id'] ?? 0);
+                                                ?>
+                                                <<?php echo $team_url ? 'a' : 'span'; ?> class="league-team-cell" <?php echo $team_url ? 'href="' . esc_url($team_url) . '"' : ''; ?>>
                                                     <?php $team_logo = football_league_image_url($row['team']['logo'] ?? ''); ?>
                                                     <?php if ($team_logo) : ?>
                                                         <img src="<?php echo esc_url($team_logo); ?>" alt="">
                                                     <?php endif; ?>
-                                                    <?php echo esc_html($row['team']['name'] ?? ''); ?>
-                                                </span>
+                                                    <?php echo esc_html($team_name); ?>
+                                                </<?php echo $team_url ? 'a' : 'span'; ?>>
                                             </td>
                                             <td><?php echo esc_html($row['all']['played'] ?? ''); ?></td>
                                             <td><?php echo esc_html($row['all']['win'] ?? ''); ?></td>
