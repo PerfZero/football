@@ -119,7 +119,8 @@ function football_team_standing_row(?WP_Post $league, mixed $team_api_id): array
         $venue_address = $venue ? get_post_meta($venue->ID, 'football_venue_address', true) : football_team_meta('football_venue_address');
         $venue_capacity = $venue ? get_post_meta($venue->ID, 'football_venue_capacity', true) : football_team_meta('football_venue_capacity');
         $venue_surface = $venue ? get_post_meta($venue->ID, 'football_venue_surface', true) : football_team_meta('football_venue_surface');
-        $venue_image = football_team_image_url($venue ? get_post_meta($venue->ID, 'football_venue_image', true) : football_team_meta('football_venue_image'));
+        $venue_image_meta = $venue ? get_post_meta($venue->ID, 'football_venue_image', true) : '';
+        $venue_image = football_team_image_url($venue_image_meta ?: football_team_meta('football_venue_image'));
         $city = $venue ? get_post_meta($venue->ID, 'football_city', true) : $city;
         $stadium = $venue ? get_the_title($venue) : $stadium;
         $standing = football_team_standing_row($league, $api_id);

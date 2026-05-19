@@ -453,18 +453,41 @@ final class Football_Data_Sync
             return 0;
         }
 
-        $post_id = $this->upsert_post('football_venue', $api_id, $name, '', [
+        $existing_post_id = $this->find_post_by_api_id('football_venue', $api_id);
+        $meta = $this->preserve_existing_meta($existing_post_id, [
             'football_venue_address' => sanitize_text_field($venue['address'] ?? ''),
             'football_city' => sanitize_text_field($venue['city'] ?? ''),
             'football_country' => sanitize_text_field($venue['country'] ?? $country),
             'football_venue_capacity' => sanitize_text_field((string) ($venue['capacity'] ?? '')),
             'football_venue_surface' => sanitize_text_field($venue['surface'] ?? ''),
             'football_venue_image' => $this->sideload_image($venue['image'] ?? '', $name . ' image'),
-        ], $stats);
+        ]);
+
+        $post_id = $this->upsert_post('football_venue', $api_id, $name, '', $meta, $stats);
 
         $this->assign_terms($post_id, 'football_country', $venue['country'] ?? $country);
 
         return $post_id;
+    }
+
+    private function preserve_existing_meta(int $post_id, array $meta): array
+    {
+        if (!$post_id) {
+            return $meta;
+        }
+
+        foreach ($meta as $key => $value) {
+            if ($value !== '' && $value !== []) {
+                continue;
+            }
+
+            $existing = get_post_meta($post_id, $key, true);
+            if ($existing !== '' && $existing !== []) {
+                $meta[$key] = $existing;
+            }
+        }
+
+        return $meta;
     }
 
     private function find_league_season(int $league_api_id, string $season): int

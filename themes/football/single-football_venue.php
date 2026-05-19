@@ -43,6 +43,24 @@ function football_venue_team_link(mixed $post_id, string $fallback): string
 
     return '<a href="' . esc_url(get_permalink($post)) . '">' . esc_html(get_the_title($post)) . '</a>';
 }
+
+function football_venue_fallback_team_image(int $venue_id): mixed
+{
+    $teams = get_posts([
+        'post_type' => 'football_team',
+        'post_status' => 'publish',
+        'posts_per_page' => 1,
+        'fields' => 'ids',
+        'meta_key' => 'football_venue_post_id',
+        'meta_value' => (string) $venue_id,
+    ]);
+
+    if (!$teams) {
+        return '';
+    }
+
+    return get_post_meta((int) $teams[0], 'football_venue_image', true);
+}
 ?>
 
 <main id="main" class="team-page">
@@ -55,7 +73,8 @@ function football_venue_team_link(mixed $post_id, string $fallback): string
         $country = football_venue_meta('football_country');
         $capacity = football_venue_meta('football_venue_capacity');
         $surface = football_venue_meta('football_venue_surface');
-        $image = football_venue_image_url(football_venue_meta('football_venue_image'));
+        $image_meta = football_venue_meta('football_venue_image') ?: football_venue_fallback_team_image(get_the_ID());
+        $image = football_venue_image_url($image_meta);
 
         $teams = get_posts([
             'post_type' => 'football_team',
