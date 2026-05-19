@@ -294,6 +294,7 @@ final class Football_Data_Sync
                 $league = $item['league'] ?? [];
                 $teams = $item['teams'] ?? [];
                 $goals = $item['goals'] ?? [];
+                $score = $item['score'] ?? [];
                 $api_id = absint($fixture['id'] ?? 0);
                 $home = sanitize_text_field($teams['home']['name'] ?? '');
                 $away = sanitize_text_field($teams['away']['name'] ?? '');
@@ -324,12 +325,24 @@ final class Football_Data_Sync
                     'football_league_name' => sanitize_text_field($league['name'] ?? ''),
                     'football_round' => sanitize_text_field($league['round'] ?? ''),
                     'football_match_datetime' => sanitize_text_field($fixture['date'] ?? ''),
+                    'football_referee' => sanitize_text_field($fixture['referee'] ?? ''),
+                    'football_timezone' => sanitize_text_field($fixture['timezone'] ?? ''),
+                    'football_timestamp' => sanitize_text_field((string) ($fixture['timestamp'] ?? '')),
+                    'football_periods_payload' => wp_json_encode($fixture['periods'] ?? [], JSON_UNESCAPED_UNICODE),
                     'football_venue' => sanitize_text_field($fixture['venue']['name'] ?? ''),
+                    'football_venue_city' => sanitize_text_field($fixture['venue']['city'] ?? ''),
                     'football_status' => sanitize_text_field($fixture['status']['long'] ?? ''),
+                    'football_status_short' => sanitize_text_field($fixture['status']['short'] ?? ''),
+                    'football_status_elapsed' => sanitize_text_field((string) ($fixture['status']['elapsed'] ?? '')),
+                    'football_status_extra' => sanitize_text_field((string) ($fixture['status']['extra'] ?? '')),
                     'football_home_team' => $home,
                     'football_away_team' => $away,
                     'football_home_score' => sanitize_text_field((string) ($goals['home'] ?? '')),
                     'football_away_score' => sanitize_text_field((string) ($goals['away'] ?? '')),
+                    'football_score_payload' => wp_json_encode($score, JSON_UNESCAPED_UNICODE),
+                    'football_match_events' => $this->map_fixture_events($item['events'] ?? []),
+                    'football_match_statistics' => $this->map_fixture_statistics($item['statistics'] ?? []),
+                    'football_api_payload' => wp_json_encode($item, JSON_UNESCAPED_UNICODE),
                 ], $stats);
 
                 $this->assign_terms($post_id, 'football_season', $season);
@@ -337,6 +350,73 @@ final class Football_Data_Sync
         }
 
         return $stats;
+    }
+
+    private function map_fixture_events(array $events): array
+    {
+        $mapped = [];
+
+        foreach ($events as $event) {
+            if (!is_array($event)) {
+                continue;
+            }
+
+            $elapsed = $event['time']['elapsed'] ?? '';
+            $extra = $event['time']['extra'] ?? '';
+            $minute = trim((string) $elapsed . ($extra !== '' && $extra !== null ? '+' . $extra : ''));
+            $detail = sanitize_text_field($event['detail'] ?? '');
+            $comments = sanitize_text_field($event['comments'] ?? '');
+
+            $mapped[] = [
+                'minute' => sanitize_text_field($minute),
+                'team' => sanitize_text_field($event['team']['name'] ?? ''),
+                'player' => sanitize_text_field($event['player']['name'] ?? ''),
+                'type' => $this->fixture_event_type($event['type'] ?? ''),
+                'description' => trim($detail . ($comments !== '' ? ' · ' . $comments : '')),
+            ];
+        }
+
+        return $mapped;
+    }
+
+    private function fixture_event_type(string $type): string
+    {
+        return match (strtolower($type)) {
+            'goal' => 'goal',
+            'card' => 'card',
+            'subst', 'substitution' => 'substitution',
+            'var' => 'var',
+            default => 'other',
+        };
+    }
+
+    private function map_fixture_statistics(array $statistics): array
+    {
+        if (count($statistics) < 2) {
+            return [];
+        }
+
+        $home_stats = $statistics[0]['statistics'] ?? [];
+        $away_stats = $statistics[1]['statistics'] ?? [];
+        if (!is_array($home_stats) || !is_array($away_stats)) {
+            return [];
+        }
+
+        $mapped = [];
+        foreach ($home_stats as $index => $home_row) {
+            if (!is_array($home_row)) {
+                continue;
+            }
+
+            $away_row = is_array($away_stats[$index] ?? null) ? $away_stats[$index] : [];
+            $mapped[] = [
+                'label' => sanitize_text_field($home_row['type'] ?? ''),
+                'home' => sanitize_text_field((string) ($home_row['value'] ?? '')),
+                'away' => sanitize_text_field((string) ($away_row['value'] ?? '')),
+            ];
+        }
+
+        return $mapped;
     }
 
     private function render_button(string $task, string $label): void

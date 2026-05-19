@@ -25,12 +25,11 @@ function football_venue_format_match_date(string $value): string
         return '';
     }
 
-    $timestamp = strtotime($value);
-    if (!$timestamp) {
+    try {
+        return (new DateTimeImmutable($value))->format('d.m.Y H:i');
+    } catch (Exception) {
         return $value;
     }
-
-    return wp_date('d.m.Y H:i', $timestamp);
 }
 
 function football_venue_team_link(mixed $post_id, string $fallback): string

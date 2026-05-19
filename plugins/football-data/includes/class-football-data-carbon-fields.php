@@ -211,6 +211,9 @@ final class Football_Data_Carbon_Fields
                 Field::make('text', 'football_league_name', 'Турнир'),
                 Field::make('text', 'football_round', 'Тур/стадия'),
                 Field::make('date_time', 'football_match_datetime', 'Дата и время матча'),
+                Field::make('text', 'football_referee', 'Судья'),
+                Field::make('text', 'football_timezone', 'Часовой пояс API'),
+                Field::make('text', 'football_timestamp', 'Timestamp'),
                 Field::make('association', 'football_fixture_venue', 'Стадион')
                     ->set_max(1)
                     ->set_types([
@@ -232,6 +235,12 @@ final class Football_Data_Carbon_Fields
                 Field::make('text', 'football_away_team', 'Гостевая команда'),
                 Field::make('text', 'football_home_score', 'Счет хозяев'),
                 Field::make('text', 'football_away_score', 'Счет гостей'),
+                Field::make('text', 'football_status_short', 'Короткий статус'),
+                Field::make('text', 'football_status_elapsed', 'Минута'),
+                Field::make('text', 'football_status_extra', 'Добавленное время'),
+                Field::make('textarea', 'football_score_payload', 'Счет по периодам JSON'),
+                Field::make('textarea', 'football_periods_payload', 'Периоды JSON'),
+                Field::make('textarea', 'football_api_payload', 'Полный ответ API JSON'),
             ]);
 
         Container::make('post_meta', 'События, статистика и коэффициенты')
