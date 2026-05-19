@@ -49,6 +49,30 @@ function football_team_post_by_id(mixed $post_id): ?WP_Post
     return $post instanceof WP_Post ? $post : null;
 }
 
+function football_team_format_match_date(string $value): string
+{
+    if ($value === '') {
+        return '';
+    }
+
+    $timestamp = strtotime($value);
+    if (!$timestamp) {
+        return $value;
+    }
+
+    return wp_date('d.m.Y H:i', $timestamp);
+}
+
+function football_team_match_link(mixed $post_id, string $fallback): string
+{
+    $post = football_team_post_by_id($post_id);
+    if (!$post) {
+        return esc_html($fallback);
+    }
+
+    return '<a href="' . esc_url(get_permalink($post)) . '">' . esc_html(get_the_title($post)) . '</a>';
+}
+
 function football_team_standing_row(?WP_Post $league, mixed $team_api_id): array
 {
     if (!$league || !$team_api_id) {
@@ -228,13 +252,17 @@ function football_team_standing_row(?WP_Post $league, mixed $team_api_id): array
                                 $home_score = get_post_meta($fixture->ID, 'football_home_score', true);
                                 $away_score = get_post_meta($fixture->ID, 'football_away_score', true);
                                 $date = get_post_meta($fixture->ID, 'football_match_datetime', true);
+                                $home_id = get_post_meta($fixture->ID, 'football_home_team_post_id', true);
+                                $away_id = get_post_meta($fixture->ID, 'football_away_team_post_id', true);
                                 ?>
-                                <a class="team-fixture" href="<?php echo esc_url(get_permalink($fixture)); ?>">
-                                    <span><?php echo esc_html($date); ?></span>
-                                    <strong><?php echo esc_html($home); ?></strong>
-                                    <em><?php echo esc_html($home_score !== '' || $away_score !== '' ? $home_score . ':' . $away_score : 'vs'); ?></em>
-                                    <strong><?php echo esc_html($away); ?></strong>
-                                </a>
+                                <div class="team-fixture">
+                                    <span><?php echo esc_html(football_team_format_match_date($date)); ?></span>
+                                    <strong><?php echo wp_kses_post(football_team_match_link($home_id, $home)); ?></strong>
+                                    <a class="team-fixture-match" href="<?php echo esc_url(get_permalink($fixture)); ?>">
+                                        <?php echo esc_html($home_score !== '' || $away_score !== '' ? $home_score . ':' . $away_score : 'vs'); ?>
+                                    </a>
+                                    <strong><?php echo wp_kses_post(football_team_match_link($away_id, $away)); ?></strong>
+                                </div>
                             <?php endforeach; ?>
                         </div>
                     <?php else : ?>

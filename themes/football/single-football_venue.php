@@ -18,6 +18,31 @@ function football_venue_image_url(mixed $value): string
 
     return esc_url_raw((string) $value);
 }
+
+function football_venue_format_match_date(string $value): string
+{
+    if ($value === '') {
+        return '';
+    }
+
+    $timestamp = strtotime($value);
+    if (!$timestamp) {
+        return $value;
+    }
+
+    return wp_date('d.m.Y H:i', $timestamp);
+}
+
+function football_venue_team_link(mixed $post_id, string $fallback): string
+{
+    $post_id = absint($post_id);
+    $post = $post_id ? get_post($post_id) : null;
+    if (!$post instanceof WP_Post) {
+        return esc_html($fallback);
+    }
+
+    return '<a href="' . esc_url(get_permalink($post)) . '">' . esc_html(get_the_title($post)) . '</a>';
+}
 ?>
 
 <main id="main" class="team-page">
@@ -96,12 +121,12 @@ function football_venue_image_url(mixed $value): string
                     <?php if ($fixtures) : ?>
                         <div class="team-fixtures">
                             <?php foreach ($fixtures as $fixture) : ?>
-                                <a class="team-fixture" href="<?php echo esc_url(get_permalink($fixture)); ?>">
-                                    <span><?php echo esc_html(get_post_meta($fixture->ID, 'football_match_datetime', true)); ?></span>
-                                    <strong><?php echo esc_html(get_post_meta($fixture->ID, 'football_home_team', true)); ?></strong>
-                                    <em>vs</em>
-                                    <strong><?php echo esc_html(get_post_meta($fixture->ID, 'football_away_team', true)); ?></strong>
-                                </a>
+                                <div class="team-fixture">
+                                    <span><?php echo esc_html(football_venue_format_match_date(get_post_meta($fixture->ID, 'football_match_datetime', true))); ?></span>
+                                    <strong><?php echo wp_kses_post(football_venue_team_link(get_post_meta($fixture->ID, 'football_home_team_post_id', true), get_post_meta($fixture->ID, 'football_home_team', true))); ?></strong>
+                                    <a class="team-fixture-match" href="<?php echo esc_url(get_permalink($fixture)); ?>">vs</a>
+                                    <strong><?php echo wp_kses_post(football_venue_team_link(get_post_meta($fixture->ID, 'football_away_team_post_id', true), get_post_meta($fixture->ID, 'football_away_team', true))); ?></strong>
+                                </div>
                             <?php endforeach; ?>
                         </div>
                     <?php else : ?>

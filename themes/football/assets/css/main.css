@@ -916,12 +916,23 @@ a.league-team-cell:focus {
     border: 1px solid var(--color-line);
     border-radius: 6px;
     padding: 12px;
+}
+
+.team-fixture:hover {
+    border-color: var(--color-field);
+}
+
+.team-fixture strong a,
+.team-fixture-match {
     text-decoration: none;
 }
 
-.team-fixture:hover,
-.team-fixture:focus {
-    border-color: var(--color-field);
+.team-fixture strong a:hover,
+.team-fixture strong a:focus,
+.team-fixture-match:hover,
+.team-fixture-match:focus {
+    color: var(--color-field-dark);
+    text-decoration: underline;
 }
 
 .team-fixture span,
@@ -929,9 +940,8 @@ a.league-team-cell:focus {
     color: var(--color-muted);
 }
 
-.team-fixture em {
+.team-fixture-match {
     color: var(--color-field-dark);
-    font-style: normal;
     font-weight: 900;
     text-align: center;
 }
