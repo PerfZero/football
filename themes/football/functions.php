@@ -54,7 +54,6 @@ function football_string_translations(): array
     return [
         'site.section.football' => 'Футбол',
         'site.home.subtitle' => 'Новости, матчи, игроки, турниры и букмекеры в одном месте.',
-        'site.quick_links' => 'Быстрые ссылки',
         'site.archive' => 'Архив',
         'site.no_posts' => 'Пока нет записей.',
         'home.featured_leagues' => 'Турниры в базе',

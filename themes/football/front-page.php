@@ -71,39 +71,6 @@ function football_home_format_date(string $value): string
     }
 }
 
-$quick_sections = [
-    [
-        'title' => football_t('section.leagues'),
-        'post_type' => 'football_league',
-        'archive_label' => football_t('archive.leagues'),
-    ],
-    [
-        'title' => football_t('section.teams'),
-        'post_type' => 'football_team',
-        'archive_label' => football_t('archive.teams'),
-    ],
-    [
-        'title' => football_t('section.players'),
-        'post_type' => 'football_player',
-        'archive_label' => football_t('archive.players'),
-    ],
-    [
-        'title' => football_t('section.fixtures'),
-        'post_type' => 'football_fixture',
-        'archive_label' => football_t('archive.fixtures'),
-    ],
-    [
-        'title' => football_t('section.bookmakers'),
-        'post_type' => 'football_bookmaker',
-        'archive_label' => football_t('archive.bookmakers'),
-    ],
-    [
-        'title' => football_t('section.news'),
-        'post_type' => 'post',
-        'archive_label' => football_t('archive.news'),
-    ],
-];
-
 $leagues = get_posts([
     'post_type' => 'football_league',
     'post_status' => 'publish',
@@ -155,25 +122,9 @@ $compact_sections = [
         </div>
     </section>
 
-    <section class="container home-page__quick">
-        <h2><?php football_esc_html_t('site.quick_links'); ?></h2>
-        <div class="home-page__links">
-            <?php foreach ($quick_sections as $section) : ?>
-                <?php $archive_url = football_home_archive_url($section['post_type']); ?>
-                <?php if ($archive_url) : ?>
-                    <a href="<?php echo esc_url($archive_url); ?>"><?php echo esc_html($section['archive_label']); ?></a>
-                <?php endif; ?>
-            <?php endforeach; ?>
-        </div>
-    </section>
-
     <section class="container home-featured">
         <header class="home-section-heading">
             <h2><?php football_esc_html_t('home.featured_leagues'); ?></h2>
-            <?php $leagues_archive = football_home_archive_url('football_league'); ?>
-            <?php if ($leagues_archive) : ?>
-                <a href="<?php echo esc_url($leagues_archive); ?>"><?php echo esc_html(football_t('archive.leagues')); ?></a>
-            <?php endif; ?>
         </header>
 
         <?php if ($leagues) : ?>
@@ -236,10 +187,6 @@ $compact_sections = [
     <section class="container home-featured">
         <header class="home-section-heading">
             <h2><?php football_esc_html_t('home.featured_teams'); ?></h2>
-            <?php $teams_archive = football_home_archive_url('football_team'); ?>
-            <?php if ($teams_archive) : ?>
-                <a href="<?php echo esc_url($teams_archive); ?>"><?php echo esc_html(football_t('archive.teams')); ?></a>
-            <?php endif; ?>
         </header>
 
         <?php if ($teams) : ?>

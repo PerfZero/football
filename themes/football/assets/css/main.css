@@ -297,10 +297,6 @@ img {
     padding: 32px 0;
 }
 
-.home-page__quick {
-    padding: 0 0 32px;
-}
-
 .home-page__intro h1 {
     margin: 0 0 12px;
     font-size: 2.25rem;
@@ -321,35 +317,11 @@ img {
     text-transform: uppercase;
 }
 
-.home-page__links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 18px;
-}
-
 .home-data-list dt {
     color: var(--color-muted);
     font-size: 0.76rem;
     font-weight: 800;
     text-transform: uppercase;
-}
-
-.home-page__links a {
-    display: inline-flex;
-    align-items: center;
-    min-height: 36px;
-    border: 1px solid var(--color-line);
-    border-radius: 6px;
-    padding: 7px 10px;
-    background: #ffffff;
-    color: var(--color-ink);
-    font-size: 0.9rem;
-    text-decoration: none;
-}
-
-.home-page__links a:hover {
-    border-color: var(--color-field);
 }
 
 .home-featured {
@@ -583,11 +555,6 @@ img {
 .home-empty {
     margin: 0;
     padding: 16px;
-}
-
-.home-page__quick h2 {
-    margin: 0 0 12px;
-    font-size: 1.2rem;
 }
 
 .player-profile {
